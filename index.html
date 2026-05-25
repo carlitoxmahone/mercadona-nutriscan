@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f766e" />
+  <meta name="theme-color" content="#071f1d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="NutriScan" />
   <title>Mercadona NutriScan</title>
@@ -11,62 +11,158 @@
   <style>
     :root {
       color-scheme: light;
-      --bg: #f3f4f6;
-      --card: #ffffff;
-      --text: #111827;
-      --muted: #6b7280;
-      --primary: #0f766e;
-      --primary-dark: #115e59;
-      --border: #e5e7eb;
-      --good: #15803d;
-      --warn: #b45309;
-      --bad: #b91c1c;
-      --blue: #1d4ed8;
+      --bg: #eef4f2;
+      --bg2: #f8faf9;
+      --text: #071f1d;
+      --muted: #667a76;
+      --card: rgba(255, 255, 255, .88);
+      --card-solid: #ffffff;
+      --line: rgba(7, 31, 29, .09);
+      --primary: #087f73;
+      --primary2: #12b8a6;
+      --ink: #06211f;
+      --good: #138a43;
+      --warn: #b46908;
+      --bad: #b3261e;
+      --blue: #2867d8;
+      --shadow: 0 18px 50px rgba(6, 33, 31, .12);
+      --soft-shadow: 0 10px 30px rgba(6, 33, 31, .08);
+      --radius: 28px;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+    html { background: var(--bg); }
 
     body {
       margin: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: var(--bg);
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at 18% 0%, rgba(18,184,166,.32), transparent 32%),
+        radial-gradient(circle at 86% 6%, rgba(8,127,115,.22), transparent 28%),
+        linear-gradient(180deg, #e9f6f3 0%, #f8faf9 42%, #edf4f2 100%);
       color: var(--text);
-      padding-bottom: env(safe-area-inset-bottom);
+      padding-bottom: calc(22px + env(safe-area-inset-bottom));
     }
 
-    header {
-      background: linear-gradient(135deg, #0f766e, #14b8a6);
-      color: white;
-      padding: 28px 18px 24px;
-      border-bottom-left-radius: 26px;
-      border-bottom-right-radius: 26px;
-    }
-
-    header h1 {
-      margin: 0 0 8px;
-      font-size: 28px;
-      line-height: 1.1;
-    }
-
-    header p {
-      margin: 0;
-      color: rgba(255,255,255,.88);
-      font-size: 15px;
-    }
-
-    main {
-      max-width: 760px;
+    .app {
+      width: min(920px, 100%);
       margin: 0 auto;
       padding: 18px;
     }
 
-    .card {
+    .hero {
+      position: relative;
+      overflow: hidden;
+      margin: 0 0 18px;
+      padding: 28px 22px 24px;
+      border-radius: 0 0 34px 34px;
+      background:
+        linear-gradient(135deg, rgba(7,31,29,.98), rgba(8,127,115,.95) 56%, rgba(18,184,166,.9)),
+        radial-gradient(circle at 70% 0%, rgba(255,255,255,.18), transparent 30%);
+      color: white;
+      box-shadow: var(--shadow);
+    }
+
+    .hero:before {
+      content: "";
+      position: absolute;
+      width: 240px;
+      height: 240px;
+      right: -90px;
+      top: -80px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+    }
+
+    .hero-top {
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .logo {
+      display: inline-grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.16);
+      border: 1px solid rgba(255,255,255,.22);
+      backdrop-filter: blur(12px);
+      font-size: 23px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+    }
+
+    .version-pill {
+      border: 1px solid rgba(255,255,255,.22);
+      background: rgba(255,255,255,.13);
+      color: rgba(255,255,255,.9);
+      border-radius: 999px;
+      padding: 8px 11px;
+      font-size: 12px;
+      font-weight: 800;
+      backdrop-filter: blur(12px);
+    }
+
+    h1 {
+      position: relative;
+      margin: 20px 0 8px;
+      font-size: clamp(31px, 8vw, 48px);
+      line-height: .98;
+      letter-spacing: -.045em;
+    }
+
+    .hero p {
+      position: relative;
+      margin: 0;
+      max-width: 640px;
+      color: rgba(255,255,255,.82);
+      line-height: 1.45;
+      font-size: 15px;
+    }
+
+    .hero-stats {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 18px;
+    }
+
+    .mini-stat {
+      padding: 11px 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.16);
+      backdrop-filter: blur(10px);
+    }
+
+    .mini-stat strong { display: block; font-size: 16px; letter-spacing: -.02em; }
+    .mini-stat span { display: block; margin-top: 2px; font-size: 11px; color: rgba(255,255,255,.74); }
+
+    .panel {
       background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 22px;
-      padding: 18px;
-      box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+      border: 1px solid rgba(255,255,255,.72);
+      border-radius: var(--radius);
+      padding: 16px;
+      box-shadow: var(--soft-shadow);
+      backdrop-filter: blur(20px);
       margin-bottom: 16px;
+      animation: appear .28s ease both;
+    }
+
+    @keyframes appear {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .scan-card {
+      margin-top: -4px;
+      background: rgba(255,255,255,.82);
     }
 
     .actions {
@@ -75,33 +171,37 @@
       gap: 10px;
     }
 
-    button, input {
-      font: inherit;
-    }
+    button, input, textarea { font: inherit; }
 
     button {
       border: 0;
-      border-radius: 16px;
+      min-height: 52px;
+      border-radius: 19px;
       padding: 14px 16px;
-      background: var(--primary);
+      background: linear-gradient(135deg, var(--primary), var(--primary2));
       color: white;
-      font-weight: 700;
+      font-weight: 850;
+      letter-spacing: -.01em;
       cursor: pointer;
+      box-shadow: 0 12px 24px rgba(8,127,115,.25);
+      transition: transform .15s ease, opacity .15s ease, box-shadow .15s ease;
     }
 
+    button:active { transform: scale(.985); }
+    button:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
+
     button.secondary {
-      background: #e5e7eb;
-      color: #111827;
+      background: #edf3f1;
+      color: var(--ink);
+      box-shadow: none;
+      border: 1px solid var(--line);
     }
 
     button.danger {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-
-    button:disabled {
-      opacity: .55;
-      cursor: not-allowed;
+      background: #fff0ee;
+      color: var(--bad);
+      box-shadow: none;
+      border: 1px solid rgba(179, 38, 30, .12);
     }
 
     .manual-row {
@@ -111,57 +211,119 @@
       margin-top: 10px;
     }
 
-    input {
+    input, textarea {
       width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 13px 14px;
-      background: #fff;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 14px 15px;
+      background: rgba(255,255,255,.92);
       color: var(--text);
+      outline: none;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.8);
+    }
+
+    input:focus, textarea:focus { border-color: rgba(8,127,115,.38); box-shadow: 0 0 0 4px rgba(18,184,166,.12); }
+    textarea { min-height: 96px; resize: vertical; }
+
+    label {
+      display: block;
+      margin: 0 0 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: .055em;
     }
 
     #reader {
       width: 100%;
       overflow: hidden;
-      border-radius: 20px;
-      background: #111827;
+      border-radius: 24px;
+      background: #071f1d;
       margin-top: 12px;
+      border: 1px solid rgba(7,31,29,.12);
     }
 
     .hidden { display: none !important; }
+    .status, .subtle, .notice { color: var(--muted); line-height: 1.43; }
+    .status { font-size: 14px; margin-top: 12px; }
+    .notice { font-size: 12px; margin: 12px 2px 0; }
 
-    .status {
-      color: var(--muted);
-      font-size: 14px;
-      margin-top: 10px;
+    .product-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
     }
 
     .product-title {
-      margin: 0 0 4px;
-      font-size: 24px;
-      line-height: 1.15;
+      margin: 0 0 6px;
+      font-size: 25px;
+      line-height: 1.08;
+      letter-spacing: -.025em;
     }
 
-    .subtle {
-      color: var(--muted);
-      font-size: 14px;
-    }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
 
-    .badge {
+    .chip {
       display: inline-flex;
       align-items: center;
-      gap: 6px;
       border-radius: 999px;
       padding: 7px 10px;
-      font-size: 13px;
-      font-weight: 700;
-      margin-top: 10px;
+      font-size: 12px;
+      font-weight: 850;
+      border: 1px solid transparent;
     }
 
-    .badge.good { background: #dcfce7; color: var(--good); }
-    .badge.warn { background: #fef3c7; color: var(--warn); }
-    .badge.bad { background: #fee2e2; color: var(--bad); }
-    .badge.neutral { background: #dbeafe; color: var(--blue); }
+    .chip.good { background: #e2f8ea; color: var(--good); border-color: rgba(19,138,67,.10); }
+    .chip.warn { background: #fff2d8; color: var(--warn); border-color: rgba(180,105,8,.12); }
+    .chip.bad { background: #ffebe8; color: var(--bad); border-color: rgba(179,38,30,.12); }
+    .chip.neutral { background: #eaf1ff; color: var(--blue); border-color: rgba(40,103,216,.10); }
+
+    .score-box {
+      display: grid;
+      grid-template-columns: 98px 1fr;
+      gap: 16px;
+      align-items: center;
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 26px;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.98), rgba(248,250,249,.92)),
+        radial-gradient(circle at 0% 0%, rgba(18,184,166,.12), transparent 40%);
+      border: 1px solid rgba(7,31,29,.08);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+
+    .score-circle {
+      width: 92px;
+      height: 92px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(#18a957 0deg, #18a957 var(--score-deg), #ddebe7 var(--score-deg), #ddebe7 360deg);
+      position: relative;
+      color: var(--good);
+      font-size: 26px;
+      font-weight: 950;
+      letter-spacing: -.04em;
+    }
+
+    .score-circle:after {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.9);
+    }
+
+    .score-circle span { position: relative; z-index: 1; }
+    .score-circle.warn { background: conic-gradient(#f59e0b 0deg, #f59e0b var(--score-deg), #efe4cf var(--score-deg), #efe4cf 360deg); color: var(--warn); }
+    .score-circle.bad { background: conic-gradient(#ef4444 0deg, #ef4444 var(--score-deg), #efd5d1 var(--score-deg), #efd5d1 360deg); color: var(--bad); }
+
+    .score-box h3 { margin: 0 0 6px; font-size: 20px; letter-spacing: -.02em; }
+    .score-box p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.42; }
 
     .grid {
       display: grid;
@@ -171,115 +333,147 @@
     }
 
     .tile {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 13px;
-      background: #f9fafb;
+      border: 1px solid rgba(7,31,29,.075);
+      border-radius: 22px;
+      padding: 14px;
+      background: rgba(255,255,255,.75);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.7);
     }
 
-    .tile small {
-      display: block;
-      color: var(--muted);
-      margin-bottom: 5px;
+    .tile small { display: block; color: var(--muted); margin-bottom: 6px; font-size: 12px; font-weight: 750; }
+    .tile strong { font-size: 19px; letter-spacing: -.025em; }
+
+    .section-title {
+      margin: 0 0 10px;
+      font-size: 19px;
+      letter-spacing: -.02em;
     }
 
-    .tile strong {
-      font-size: 18px;
-    }
-
-    .rating h3, .section-title {
-      margin: 0 0 8px;
-      font-size: 18px;
-    }
-
-    .rating p, .ingredients p {
-      margin: 0;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    .history-item {
-      padding: 12px 0;
-      border-top: 1px solid var(--border);
-    }
-
-    .history-item:first-of-type { border-top: 0; }
-
-    .history-item button {
-      width: 100%;
-      text-align: left;
-      background: transparent;
-      color: var(--text);
-      padding: 0;
-      border-radius: 0;
-      font-weight: 600;
-    }
-
-    .history-item span {
-      display: block;
-      color: var(--muted);
-      font-size: 13px;
-      margin-top: 3px;
-    }
-
-    .notice {
-      font-size: 13px;
-      line-height: 1.4;
-      color: var(--muted);
+    .traffic {
+      display: grid;
+      gap: 10px;
       margin-top: 12px;
     }
 
-    @media (min-width: 620px) {
+    .traffic-row {
+      display: grid;
+      grid-template-columns: 102px 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.66);
+      border: 1px solid rgba(7,31,29,.065);
+      font-size: 14px;
+    }
+
+    .bar { height: 9px; border-radius: 999px; background: #dfe9e6; overflow: hidden; }
+    .bar span { display: block; height: 100%; border-radius: 999px; }
+    .bar .good { background: linear-gradient(90deg, #22c55e, #16a34a); }
+    .bar .warn { background: linear-gradient(90deg, #fbbf24, #f59e0b); }
+    .bar .bad { background: linear-gradient(90deg, #fb7185, #ef4444); }
+    .bar .neutral { background: linear-gradient(90deg, #93c5fd, #3b82f6); }
+
+    .ingredients {
+      margin-top: 16px;
+      padding: 15px;
+      border-radius: 22px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid rgba(7,31,29,.065);
+    }
+
+    .ingredients p { margin: 0; color: var(--muted); line-height: 1.48; font-size: 14px; }
+
+    .history-item {
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .history-item:first-of-type { border-top: 0; }
+    .history-item button { width: 100%; min-height: 0; text-align: left; background: transparent; color: var(--text); padding: 0; border-radius: 0; box-shadow: none; font-weight: 850; }
+    .history-item span { display: block; color: var(--muted); font-size: 13px; margin-top: 4px; font-weight: 500; }
+
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 14px; }
+    .form-grid .wide { grid-column: 1 / -1; }
+    .divider { height: 1px; background: var(--line); margin: 18px 0; }
+
+    .toast {
+      position: fixed;
+      left: 18px;
+      right: 18px;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      z-index: 99;
+      margin: auto;
+      max-width: 520px;
+      padding: 13px 15px;
+      border-radius: 18px;
+      background: rgba(7,31,29,.92);
+      color: white;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(14px);
+      pointer-events: none;
+      transition: .24s ease;
+      font-weight: 750;
+    }
+
+    .toast.show { opacity: 1; transform: translateY(0); }
+
+    @media (min-width: 640px) {
+      .app { padding: 24px; }
+      .hero { border-radius: 36px; padding: 34px 30px; }
       .actions { grid-template-columns: 1fr 1fr; }
       .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .traffic { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Mercadona NutriScan</h1>
-    <p>Escanea un producto y consulta sus valores nutricionales por 100 g/ml.</p>
-  </header>
-
-  <main>
-    <section class="card">
-      <div class="actions">
-        <button id="startBtn">Escanear código de barras</button>
-        <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
+  <main class="app">
+    <section class="hero">
+      <div class="hero-top">
+        <div class="logo">▦</div>
+        <div class="version-pill">Premium v3</div>
       </div>
-
-      <div class="manual-row">
-        <input id="barcodeInput" inputmode="numeric" placeholder="O escribe el código de barras" />
-        <button id="searchBtn">Buscar</button>
+      <h1>Mercadona NutriScan</h1>
+      <p>Escanea, compara y guarda tus productos de Mercadona con una ficha nutricional clara y visual.</p>
+      <div class="hero-stats">
+        <div class="mini-stat"><strong>0-100</strong><span>puntuación</span></div>
+        <div class="mini-stat"><strong>Local</strong><span>base propia</span></div>
+        <div class="mini-stat"><strong>OFF</strong><span>datos externos</span></div>
       </div>
-
-      <div id="reader" class="hidden"></div>
-      <div id="status" class="status">Listo para escanear.</div>
-      <p class="notice">Consejo: en iPhone, úsala desde Safari y permite el acceso a la cámara cuando lo pida.</p>
     </section>
 
-    <section id="productCard" class="card hidden"></section>
-    <section id="historyCard" class="card hidden"></section>
+    <section class="panel scan-card">
+      <div class="actions">
+        <button id="startBtn">Escanear código</button>
+        <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
+      </div>
+      <div class="manual-row">
+        <input id="barcodeInput" inputmode="numeric" placeholder="Código de barras" />
+        <button id="searchBtn">Buscar</button>
+      </div>
+      <div id="reader" class="hidden"></div>
+      <div id="status" class="status">Listo para escanear.</div>
+      <p class="notice">Busca primero en tu base propia del móvil y después en Open Food Facts. Los productos añadidos manualmente se guardan solo en este dispositivo.</p>
+    </section>
+
+    <section id="productCard" class="panel hidden"></section>
+    <section id="manualCard" class="panel hidden"></section>
+    <section id="historyCard" class="panel hidden"></section>
   </main>
+  <div id="toast" class="toast"></div>
 
   <script>
     const OFF_ENDPOINT = "https://world.openfoodfacts.org/api/v2/product/";
-    const OFF_FIELDS = [
-      "code",
-      "product_name",
-      "brands",
-      "nutriments",
-      "nutrition_grades",
-      "ingredients_text_es",
-      "ingredients_text",
-      "allergens_tags",
-      "stores_tags"
-    ].join(",");
-
+    const OFF_FIELDS = ["code","product_name","brands","nutriments","nutrition_grades","ingredients_text_es","ingredients_text","allergens_tags","stores_tags"].join(",");
+    const HISTORY_KEY = "nutriscan_history_v3";
+    const LOCAL_PRODUCTS_KEY = "nutriscan_local_products_v3";
     let scanner = null;
     let isScanning = false;
+    let lastBarcode = "";
 
-    const $ = (id) => document.getElementById(id);
+    const $ = id => document.getElementById(id);
     const startBtn = $("startBtn");
     const stopBtn = $("stopBtn");
     const searchBtn = $("searchBtn");
@@ -287,49 +481,25 @@
     const reader = $("reader");
     const status = $("status");
     const productCard = $("productCard");
+    const manualCard = $("manualCard");
     const historyCard = $("historyCard");
+    const toast = $("toast");
 
     startBtn.addEventListener("click", startScanner);
     stopBtn.addEventListener("click", stopScanner);
     searchBtn.addEventListener("click", () => searchBarcode(barcodeInput.value.trim()));
-    barcodeInput.addEventListener("keydown", (event) => {
-      if (event.key === "Enter") searchBarcode(barcodeInput.value.trim());
-    });
-
+    barcodeInput.addEventListener("keydown", event => { if (event.key === "Enter") searchBarcode(barcodeInput.value.trim()); });
     renderHistory();
 
     async function startScanner() {
-      if (!window.Html5Qrcode) {
-        setStatus("No se ha podido cargar el lector de códigos.");
-        return;
-      }
-
+      if (!window.Html5Qrcode) { setStatus("No se ha podido cargar el lector de códigos."); return; }
       reader.classList.remove("hidden");
       startBtn.disabled = true;
       stopBtn.disabled = false;
       setStatus("Iniciando cámara…");
-
-      scanner = new Html5Qrcode("reader", {
-        formatsToSupport: [
-          Html5QrcodeSupportedFormats.EAN_13,
-          Html5QrcodeSupportedFormats.EAN_8,
-          Html5QrcodeSupportedFormats.UPC_A,
-          Html5QrcodeSupportedFormats.UPC_E,
-          Html5QrcodeSupportedFormats.CODE_128
-        ]
-      });
-
+      scanner = new Html5Qrcode("reader", { formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.CODE_128] });
       try {
-        await scanner.start(
-          { facingMode: "environment" },
-          { fps: 10, qrbox: { width: 280, height: 150 }, aspectRatio: 1.777 },
-          async (decodedText) => {
-            await stopScanner(false);
-            barcodeInput.value = decodedText;
-            await searchBarcode(decodedText);
-          },
-          () => {}
-        );
+        await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 285, height: 155 }, aspectRatio: 1.777 }, async decodedText => { await stopScanner(false); barcodeInput.value = decodedText; await searchBarcode(decodedText); }, () => {});
         isScanning = true;
         setStatus("Apunta al código de barras del producto.");
       } catch (error) {
@@ -339,12 +509,7 @@
     }
 
     async function stopScanner(showMessage = true) {
-      if (scanner && isScanning) {
-        try {
-          await scanner.stop();
-          await scanner.clear();
-        } catch (_) {}
-      }
+      if (scanner && isScanning) { try { await scanner.stop(); await scanner.clear(); } catch (error) {} }
       scanner = null;
       isScanning = false;
       reader.classList.add("hidden");
@@ -358,48 +523,49 @@
     }
 
     async function searchBarcode(barcode) {
-      if (!barcode) {
-        setStatus("Introduce o escanea un código de barras.");
-        return;
-      }
-
-      setStatus(`Buscando producto ${barcode}…`);
+      if (!barcode) { setStatus("Introduce o escanea un código de barras."); return; }
+      lastBarcode = barcode;
+      manualCard.classList.add("hidden");
       productCard.classList.add("hidden");
       productCard.innerHTML = "";
-
+      const localProduct = getLocalProducts().find(item => item.barcode === barcode);
+      if (localProduct) {
+        renderProduct(localProduct);
+        saveToHistory(localProduct);
+        renderHistory();
+        setStatus("Producto encontrado en tu base propia.");
+        showToast("Producto cargado desde tu base propia");
+        return;
+      }
+      setStatus(`Buscando producto ${barcode}…`);
       try {
         const url = `${OFF_ENDPOINT}${encodeURIComponent(barcode)}?fields=${OFF_FIELDS}`;
-        const response = await fetch(url, {
-          headers: {
-            "Accept": "application/json"
-          }
-        });
-
+        const response = await fetch(url, { headers: { "Accept": "application/json" } });
         if (!response.ok) throw new Error("Error de conexión");
-
         const data = await response.json();
         if (data.status !== 1 || !data.product) {
           renderNotFound(barcode);
-          setStatus("Producto no encontrado.");
+          setStatus("Producto no encontrado. Puedes añadirlo manualmente.");
           return;
         }
-
-        const product = normalizeProduct(data.product, barcode);
+        const product = normalizeOpenFoodFactsProduct(data.product, barcode);
         renderProduct(product);
         saveToHistory(product);
         renderHistory();
-        setStatus("Producto encontrado.");
+        setStatus("Producto encontrado en Open Food Facts.");
       } catch (error) {
-        setStatus("No se ha podido consultar la base de datos. Comprueba la conexión.");
+        setStatus("No se ha podido consultar la base de datos. Puedes añadirlo manualmente.");
+        renderNotFound(barcode);
       }
     }
 
-    function normalizeProduct(apiProduct, fallbackBarcode) {
+    function normalizeOpenFoodFactsProduct(apiProduct, fallbackBarcode) {
       const n = apiProduct.nutriments || {};
-      const product = {
+      return enrichProduct({
         barcode: apiProduct.code || fallbackBarcode,
         name: clean(apiProduct.product_name) || "Producto sin nombre",
         brands: clean(apiProduct.brands) || "Marca no disponible",
+        source: "Open Food Facts",
         nutritionGrade: clean(apiProduct.nutrition_grades),
         ingredients: clean(apiProduct.ingredients_text_es) || clean(apiProduct.ingredients_text) || "",
         allergens: Array.isArray(apiProduct.allergens_tags) ? apiProduct.allergens_tags.map(formatTag) : [],
@@ -414,23 +580,36 @@
           fiber: numberOrNull(n.fiber_100g),
           salt: numberOrNull(n.salt_100g)
         }
-      };
+      });
+    }
 
+    function enrichProduct(product) {
       product.isMercadona = isLikelyMercadona(product);
       product.rating = rateProduct(product);
+      product.score = calculateScore(product);
+      product.scoreLevel = product.score >= 75 ? "good" : product.score >= 50 ? "warn" : "bad";
+      product.indicators = buildIndicators(product);
       return product;
     }
 
     function renderProduct(product) {
-      const badgeClass = product.isMercadona ? "good" : "warn";
-      const badgeText = product.isMercadona ? "Probable producto de Mercadona" : "No parece exclusivo de Mercadona";
-      const ratingClass = product.rating.level;
-
+      const scoreClass = product.scoreLevel === "good" ? "" : product.scoreLevel;
+      const scoreDeg = Math.round(product.score * 3.6);
+      const mercaChip = product.isMercadona ? chip("Mercadona", "good") : chip("No exclusivo", "warn");
+      const sourceChip = chip(product.source || "Base externa", "neutral");
+      const gradeChip = product.nutritionGrade ? chip(`Nutri-Score ${product.nutritionGrade.toUpperCase()}`, "neutral") : "";
       productCard.innerHTML = `
-        <h2 class="product-title">${escapeHtml(product.name)}</h2>
-        <div class="subtle">${escapeHtml(product.brands)} · Código: ${escapeHtml(product.barcode)}</div>
-        <div class="badge ${badgeClass}">${badgeText}</div>
-
+        <div class="product-head">
+          <div>
+            <h2 class="product-title">${escapeHtml(product.name)}</h2>
+            <div class="subtle">${escapeHtml(product.brands)} · ${escapeHtml(product.barcode)}</div>
+            <div class="chip-row">${mercaChip}${sourceChip}${gradeChip}</div>
+          </div>
+        </div>
+        <div class="score-box">
+          <div class="score-circle ${scoreClass}" style="--score-deg:${scoreDeg}deg"><span>${product.score}</span></div>
+          <div><h3>${escapeHtml(product.rating.title)}</h3><p>${escapeHtml(product.rating.message)}</p></div>
+        </div>
         <div class="grid">
           ${tile("Kcal", formatValue(product.nutrition.kcal, "kcal"))}
           ${tile("Proteínas", formatValue(product.nutrition.proteins, "g"))}
@@ -441,160 +620,158 @@
           ${tile("Fibra", formatValue(product.nutrition.fiber, "g"))}
           ${tile("Sal", formatValue(product.nutrition.salt, "g"))}
         </div>
-
-        <div class="card rating" style="box-shadow:none;margin:16px 0 0;padding:16px;background:#f9fafb;">
-          <h3>Valoración</h3>
-          <div class="badge ${ratingClass}">${escapeHtml(product.rating.title)}</div>
-          <p style="margin-top:10px;">${escapeHtml(product.rating.message)}</p>
-        </div>
-
-        ${product.ingredients ? `
-          <div class="ingredients" style="margin-top:16px;">
-            <h3 class="section-title">Ingredientes</h3>
-            <p>${escapeHtml(product.ingredients)}</p>
-          </div>` : ""}
-
-        ${product.allergens.length ? `
-          <div class="ingredients" style="margin-top:16px;">
-            <h3 class="section-title">Alérgenos</h3>
-            <p>${escapeHtml(product.allergens.join(", "))}</p>
-          </div>` : ""}
-      `;
-
+        <div class="divider"></div>
+        <h3 class="section-title">Semáforo nutricional</h3>
+        <div class="traffic">${product.indicators.map(indicator => trafficRow(indicator)).join("")}</div>
+        ${product.ingredients ? `<div class="ingredients"><h3 class="section-title">Ingredientes</h3><p>${escapeHtml(product.ingredients)}</p></div>` : ""}
+        ${product.allergens.length ? `<div class="ingredients"><h3 class="section-title">Alérgenos</h3><p>${escapeHtml(product.allergens.join(", "))}</p></div>` : ""}
+        <div class="divider"></div>
+        <button class="secondary" onclick='openManualForm("${escapeJs(product.barcode)}", ${escapeForInlineJson(product)})'>Editar o guardar en mi base</button>`;
       productCard.classList.remove("hidden");
+      productCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function renderNotFound(barcode) {
-      productCard.innerHTML = `
-        <h2 class="product-title">Producto no encontrado</h2>
-        <p class="subtle">Código: ${escapeHtml(barcode)}</p>
-        <p style="color:var(--muted);line-height:1.45;">No aparece en Open Food Facts. En la siguiente fase añadiremos una base propia de productos Mercadona y alta manual.</p>
-      `;
+      productCard.innerHTML = `<h2 class="product-title">Producto no encontrado</h2><p class="subtle">Código: ${escapeHtml(barcode)}</p><div class="ingredients"><p>No aparece en Open Food Facts o no se ha podido consultar. Puedes guardarlo en tu propia base para que la próxima vez salga al instante.</p></div><button style="margin-top:14px" onclick='openManualForm("${escapeJs(barcode)}")'>Añadir producto manualmente</button>`;
       productCard.classList.remove("hidden");
+    }
+
+    function openManualForm(barcode = lastBarcode, product = null) {
+      const n = product?.nutrition || {};
+      manualCard.innerHTML = `<h2 class="section-title">Guardar en mi base</h2><p class="subtle">Introduce los datos por 100 g/ml de la etiqueta. Se guardan solo en este dispositivo.</p><div class="form-grid"><div class="wide"><label>Código de barras</label><input id="manualBarcode" inputmode="numeric" value="${escapeAttribute(barcode || "")}"></div><div class="wide"><label>Nombre</label><input id="manualName" value="${escapeAttribute(product?.name || "")}" placeholder="Ej. Yogur natural Hacendado"></div><div class="wide"><label>Marca</label><input id="manualBrands" value="${escapeAttribute(product?.brands || "Hacendado")}" placeholder="Hacendado, Deliplus, Bosque Verde…"></div>${numberInput("manualKcal", "Kcal", n.kcal)}${numberInput("manualProteins", "Proteínas g", n.proteins)}${numberInput("manualCarbs", "Hidratos g", n.carbs)}${numberInput("manualSugars", "Azúcares g", n.sugars)}${numberInput("manualFat", "Grasas g", n.fat)}${numberInput("manualSaturatedFat", "Saturadas g", n.saturatedFat)}${numberInput("manualFiber", "Fibra g", n.fiber)}${numberInput("manualSalt", "Sal g", n.salt)}<div class="wide"><label>Ingredientes</label><textarea id="manualIngredients" placeholder="Copia los ingredientes si quieres tenerlos guardados">${escapeHtml(product?.ingredients || "")}</textarea></div></div><div class="actions" style="margin-top:14px"><button onclick="saveManualProduct()">Guardar producto</button><button class="secondary" onclick="manualCard.classList.add('hidden')">Cancelar</button></div>`;
+      manualCard.classList.remove("hidden");
+      manualCard.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function numberInput(id, label, value) {
+      return `<div><label>${label}</label><input id="${id}" inputmode="decimal" type="number" step="0.01" value="${value ?? ""}"></div>`;
+    }
+
+    function saveManualProduct() {
+      const barcode = $("manualBarcode").value.trim();
+      const name = $("manualName").value.trim();
+      if (!barcode || !name) { setStatus("Introduce al menos código de barras y nombre."); return; }
+      const product = enrichProduct({
+        barcode,
+        name,
+        brands: $("manualBrands").value.trim() || "Mercadona",
+        source: "Base propia",
+        nutritionGrade: "",
+        ingredients: $("manualIngredients").value.trim(),
+        allergens: [],
+        storesTags: ["mercadona"],
+        nutrition: {
+          kcal: inputNumber("manualKcal"),
+          proteins: inputNumber("manualProteins"),
+          carbs: inputNumber("manualCarbs"),
+          sugars: inputNumber("manualSugars"),
+          fat: inputNumber("manualFat"),
+          saturatedFat: inputNumber("manualSaturatedFat"),
+          fiber: inputNumber("manualFiber"),
+          salt: inputNumber("manualSalt")
+        }
+      });
+      const products = getLocalProducts().filter(item => item.barcode !== barcode);
+      products.unshift(product);
+      localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
+      manualCard.classList.add("hidden");
+      renderProduct(product);
+      saveToHistory(product);
+      renderHistory();
+      setStatus("Producto guardado en tu base propia.");
+      showToast("Producto guardado en tu base propia");
     }
 
     function renderHistory() {
       const history = getHistory();
-      if (!history.length) {
-        historyCard.classList.add("hidden");
-        return;
-      }
-
-      historyCard.innerHTML = `
-        <h2 class="section-title">Historial</h2>
-        ${history.map(item => `
-          <div class="history-item">
-            <button onclick="searchBarcode('${escapeAttribute(item.barcode)}')">
-              ${escapeHtml(item.name)}
-              <span>${escapeHtml(item.brands)} · ${escapeHtml(item.barcode)}</span>
-            </button>
-          </div>
-        `).join("")}
-        <button class="danger" style="margin-top:12px;" onclick="clearHistory()">Borrar historial</button>
-      `;
+      const localCount = getLocalProducts().length;
+      if (!history.length && localCount === 0) { historyCard.classList.add("hidden"); return; }
+      historyCard.innerHTML = `<h2 class="section-title">Historial</h2><p class="subtle">Base propia: ${localCount} producto(s). Historial reciente: ${history.length}.</p>${history.map(item => `<div class="history-item"><button onclick='searchBarcode("${escapeJs(item.barcode)}")'>${escapeHtml(item.name)}<span>${escapeHtml(item.brands)} · ${escapeHtml(item.barcode)} · ${escapeHtml(item.source || "")}</span></button></div>`).join("")}<div class="actions" style="margin-top:12px"><button class="secondary" onclick="openManualForm(lastBarcode)">Añadir manual</button><button class="danger" onclick="clearHistory()">Borrar historial</button></div>`;
       historyCard.classList.remove("hidden");
     }
 
     function saveToHistory(product) {
       const history = getHistory().filter(item => item.barcode !== product.barcode);
-      history.unshift({
-        barcode: product.barcode,
-        name: product.name,
-        brands: product.brands
-      });
-      localStorage.setItem("nutriscan_history", JSON.stringify(history.slice(0, 20)));
+      history.unshift({ barcode: product.barcode, name: product.name, brands: product.brands, source: product.source });
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(history.slice(0, 25)));
     }
 
-    function getHistory() {
-      try {
-        return JSON.parse(localStorage.getItem("nutriscan_history") || "[]");
-      } catch (_) {
-        return [];
-      }
-    }
-
-    function clearHistory() {
-      localStorage.removeItem("nutriscan_history");
-      renderHistory();
-    }
+    function getHistory() { try { return JSON.parse(localStorage.getItem(HISTORY_KEY) || "[]"); } catch (error) { return []; } }
+    function getLocalProducts() { try { return JSON.parse(localStorage.getItem(LOCAL_PRODUCTS_KEY) || "[]").map(enrichProduct); } catch (error) { return []; } }
+    function clearHistory() { localStorage.removeItem(HISTORY_KEY); renderHistory(); showToast("Historial borrado"); }
+    function inputNumber(id) { const value = Number($(id).value.replace(",", ".")); return Number.isFinite(value) ? value : null; }
 
     function rateProduct(product) {
       const n = product.nutrition;
       const grade = (product.nutritionGrade || "").toLowerCase();
+      if (grade === "a" || grade === "b") return { title: "Buena opción", message: "Valoración nutricional favorable. Revisa igualmente ingredientes y ración real." };
+      if ((n.proteins ?? 0) >= 10 && (n.sugars ?? 0) <= 5 && (n.saturatedFat ?? 0) <= 3) return { title: "Interesante para dieta fitness", message: "Buena proteína y niveles razonables de azúcar y grasas saturadas por 100 g/ml." };
+      if ((n.sugars ?? 0) > 15 || (n.saturatedFat ?? 0) > 5 || (n.salt ?? 0) > 1.5 || (n.kcal ?? 0) > 450 || grade === "d" || grade === "e") return { title: "Consumo ocasional", message: "Tiene algún punto alto: azúcar, grasas saturadas, sal o densidad calórica." };
+      return { title: "Aceptable", message: "No destaca negativamente, pero conviene valorar la ración y el objetivo concreto." };
+    }
 
-      if (grade === "a" || grade === "b") {
-        return {
-          level: "good",
-          title: "Buena opción",
-          message: "Tiene una valoración nutricional favorable. Aun así, revisa ingredientes y tamaño real de ración."
-        };
+    function calculateScore(product) {
+      const n = product.nutrition;
+      let score = 75;
+      score += clamp((n.proteins ?? 0) * 1.2, 0, 18);
+      score += clamp((n.fiber ?? 0) * 1.5, 0, 10);
+      score -= clamp(((n.sugars ?? 0) - 5) * 1.5, 0, 25);
+      score -= clamp(((n.saturatedFat ?? 0) - 2) * 3, 0, 22);
+      score -= clamp(((n.salt ?? 0) - 0.7) * 12, 0, 18);
+      score -= clamp(((n.kcal ?? 0) - 250) / 10, 0, 18);
+      const grade = (product.nutritionGrade || "").toLowerCase();
+      if (grade === "a") score += 8;
+      if (grade === "b") score += 4;
+      if (grade === "d") score -= 8;
+      if (grade === "e") score -= 14;
+      return Math.round(clamp(score, 0, 100));
+    }
+
+    function buildIndicators(product) {
+      const n = product.nutrition;
+      return [
+        nutrientIndicator("Proteínas", n.proteins, 20, true),
+        nutrientIndicator("Fibra", n.fiber, 10, true),
+        nutrientIndicator("Azúcares", n.sugars, 25, false, 5, 15),
+        nutrientIndicator("Saturadas", n.saturatedFat, 10, false, 2, 5),
+        nutrientIndicator("Sal", n.salt, 2, false, 0.7, 1.5),
+        nutrientIndicator("Kcal", n.kcal, 500, false, 250, 450)
+      ];
+    }
+
+    function nutrientIndicator(label, value, max, higherIsBetter, goodLimit = null, badLimit = null) {
+      const safeValue = typeof value === "number" ? value : 0;
+      let level = "neutral";
+      let text = "—";
+      if (typeof value === "number") {
+        text = label === "Kcal" ? `${value.toFixed(0)}` : `${value.toFixed(1)} g`;
+        level = higherIsBetter ? (value >= max * .5 ? "good" : value >= max * .2 ? "warn" : "bad") : (value <= goodLimit ? "good" : value <= badLimit ? "warn" : "bad");
       }
+      return { label, percent: clamp((safeValue / max) * 100, 0, 100), level, text };
+    }
 
-      if ((n.proteins ?? 0) >= 10 && (n.sugars ?? 0) <= 5 && (n.saturatedFat ?? 0) <= 3) {
-        return {
-          level: "good",
-          title: "Interesante para dieta fitness",
-          message: "Buena cantidad de proteína y niveles razonables de azúcar y grasas saturadas por 100 g/ml."
-        };
-      }
-
-      if ((n.sugars ?? 0) > 15 || (n.saturatedFat ?? 0) > 5 || (n.salt ?? 0) > 1.5 || (n.kcal ?? 0) > 450 || grade === "d" || grade === "e") {
-        return {
-          level: "warn",
-          title: "Mejor para consumo ocasional",
-          message: "Presenta valores altos en azúcar, grasas saturadas, sal o densidad calórica. No lo usaría como básico diario."
-        };
-      }
-
-      return {
-        level: "neutral",
-        title: "Aceptable",
-        message: "No destaca negativamente, pero habría que valorar la ración, ingredientes y objetivo concreto de la dieta."
-      };
+    function trafficRow(indicator) {
+      return `<div class="traffic-row"><strong>${escapeHtml(indicator.label)}</strong><div class="bar"><span class="${indicator.level}" style="width:${indicator.percent}%"></span></div><span class="subtle">${escapeHtml(indicator.text)}</span></div>`;
     }
 
     function isLikelyMercadona(product) {
-      const text = [product.brands, product.storesTags.join(" ")].join(" ").toLowerCase();
+      const text = [product.brands, (product.storesTags || []).join(" ")].join(" ").toLowerCase();
       return ["mercadona", "hacendado", "deliplus", "bosque verde", "compy", "9.60"].some(signal => text.includes(signal));
     }
 
-    function tile(title, value) {
-      return `<div class="tile"><small>${title}</small><strong>${value}</strong></div>`;
-    }
-
-    function formatValue(value, suffix) {
-      return typeof value === "number" ? `${value.toFixed(1)} ${suffix}` : "—";
-    }
-
-    function clean(value) {
-      return typeof value === "string" ? value.trim() : "";
-    }
-
-    function numberOrNull(value) {
-      const number = Number(value);
-      return Number.isFinite(number) ? number : null;
-    }
-
-    function formatTag(value) {
-      return String(value).replace(/^\w+:/, "").replaceAll("-", " ");
-    }
-
-    function setStatus(message) {
-      status.textContent = message;
-    }
-
-    function escapeHtml(value) {
-      return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-    }
-
-    function escapeAttribute(value) {
-      return String(value).replaceAll("'", "\\'");
-    }
+    function chip(text, level) { return `<span class="chip ${level}">${escapeHtml(text)}</span>`; }
+    function tile(title, value) { return `<div class="tile"><small>${title}</small><strong>${value}</strong></div>`; }
+    function formatValue(value, suffix) { return typeof value === "number" ? `${value.toFixed(1)} ${suffix}` : "—"; }
+    function clean(value) { return typeof value === "string" ? value.trim() : ""; }
+    function numberOrNull(value) { const number = Number(value); return Number.isFinite(number) ? number : null; }
+    function formatTag(value) { const text = String(value); const index = text.indexOf(":"); return (index >= 0 ? text.slice(index + 1) : text).split("-").join(" "); }
+    function clamp(value, min, max) { return Math.min(max, Math.max(min, value)); }
+    function setStatus(message) { status.textContent = message; }
+    function showToast(message) { toast.textContent = message; toast.classList.add("show"); setTimeout(() => toast.classList.remove("show"), 2200); }
+    function escapeHtml(value) { return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+    function escapeAttribute(value) { return escapeHtml(value); }
+    function escapeJs(value) { return String(value ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
+    function escapeForInlineJson(value) { return JSON.stringify(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll("'", "&#039;"); }
   </script>
 </body>
 </html>
