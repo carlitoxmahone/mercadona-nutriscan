@@ -362,7 +362,8 @@
     }
 
     function enrichProduct(product) {
-      product.isMercadona = isLikelyMercadona(product);
+      product.supermarkets = detectSupermarkets(product);
+      product.isKnownSupermarket = product.supermarkets.length > 0;
       product.rating = rateProduct(product);
       product.score = calculateScore(product);
       product.scoreLevel = product.score >= 75 ? "good" : product.score >= 50 ? "warn" : "bad";
@@ -373,7 +374,8 @@
     function renderProduct(product) {
       const scoreClass = product.scoreLevel === "good" ? "" : product.scoreLevel;
       const scoreDeg = Math.round(product.score * 3.6);
-      const mercaChip = product.isMercadona ? chip("Mercadona", "good") : chip("No exclusivo", "warn");
+      const supermarketLabel = product.supermarkets?.length ? product.supermarkets.map(item => item.name).join(", ") : "Supermercado no detectado";
+      const mercaChip = product.supermarkets?.length ? chip(supermarketLabel, "good") : chip("Supermercado no detectado", "warn");
       const sourceChip = chip(product.source || "Base externa", "neutral");
       const gradeChip = product.nutritionGrade ? chip(`Nutri-Score ${product.nutritionGrade.toUpperCase()}`, "neutral") : "";
       const mealName = getMealName(selectedMeal);
@@ -770,7 +772,7 @@
 
     function openManualForm(barcode = lastBarcode, product = null) {
       const n = product?.nutrition || {};
-      manualCard.innerHTML = `<h2 class="section-title">Guardar en mi base</h2><p class="subtle">Introduce los datos por 100 g/ml de la etiqueta. Se guardan solo en este dispositivo.</p><div class="form-grid"><div class="wide"><label>Código de barras</label><input id="manualBarcode" inputmode="numeric" value="${escapeAttribute(barcode || "")}"></div><div class="wide"><label>Nombre</label><input id="manualName" value="${escapeAttribute(product?.name || "")}" placeholder="Ej. Pechuga de pollo"></div><div class="wide"><label>Marca</label><input id="manualBrands" value="${escapeAttribute(product?.brands || "Hacendado")}" placeholder="Hacendado, Mercadona..."></div>${numberInput("manualKcal", "Kcal", n.kcal)}${numberInput("manualProteins", "Proteínas g", n.proteins)}${numberInput("manualCarbs", "Hidratos g", n.carbs)}${numberInput("manualSugars", "Azúcares g", n.sugars)}${numberInput("manualFat", "Grasas g", n.fat)}${numberInput("manualSaturatedFat", "Saturadas g", n.saturatedFat)}${numberInput("manualFiber", "Fibra g", n.fiber)}${numberInput("manualSalt", "Sal g", n.salt)}<div class="wide"><label>Ingredientes</label><textarea id="manualIngredients" placeholder="Copia los ingredientes si quieres tenerlos guardados">${escapeHtml(product?.ingredients || "")}</textarea></div></div><div class="actions" style="margin-top:14px"><button onclick="saveManualProduct()">Guardar producto</button><button class="secondary" onclick="manualCard.classList.add('hidden')">Cancelar</button></div>`;
+      manualCard.innerHTML = `<h2 class="section-title">Guardar en mi base</h2><p class="subtle">Introduce los datos por 100 g/ml de la etiqueta. Se guardan solo en este dispositivo.</p><div class="form-grid"><div class="wide"><label>Código de barras</label><input id="manualBarcode" inputmode="numeric" value="${escapeAttribute(barcode || "")}"></div><div class="wide"><label>Nombre</label><input id="manualName" value="${escapeAttribute(product?.name || "")}" placeholder="Ej. Pechuga de pollo"></div><div class="wide"><label>Marca</label><input id="manualBrands" value="${escapeAttribute(product?.brands || "Hacendado")}" placeholder="Hacendado, Consum, Milbona, Aldi..."></div>${numberInput("manualKcal", "Kcal", n.kcal)}${numberInput("manualProteins", "Proteínas g", n.proteins)}${numberInput("manualCarbs", "Hidratos g", n.carbs)}${numberInput("manualSugars", "Azúcares g", n.sugars)}${numberInput("manualFat", "Grasas g", n.fat)}${numberInput("manualSaturatedFat", "Saturadas g", n.saturatedFat)}${numberInput("manualFiber", "Fibra g", n.fiber)}${numberInput("manualSalt", "Sal g", n.salt)}<div class="wide"><label>Ingredientes</label><textarea id="manualIngredients" placeholder="Copia los ingredientes si quieres tenerlos guardados">${escapeHtml(product?.ingredients || "")}</textarea></div></div><div class="actions" style="margin-top:14px"><button onclick="saveManualProduct()">Guardar producto</button><button class="secondary" onclick="manualCard.classList.add('hidden')">Cancelar</button></div>`;
       manualCard.classList.remove("hidden");
       manualCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -786,12 +788,12 @@
       const product = enrichProduct({
         barcode,
         name,
-        brands: $("manualBrands").value.trim() || "Mercadona",
+        brands: $("manualBrands").value.trim() || "Marca propia",
         source: "Base propia",
         nutritionGrade: "",
         ingredients: $("manualIngredients").value.trim(),
         allergens: [],
-        storesTags: ["mercadona"],
+        storesTags: [],
         nutrition: {
           kcal: inputNumber("manualKcal"),
           proteins: inputNumber("manualProteins"),
@@ -888,7 +890,10 @@
     }
 
     function summaryTile(label, value) { return `<div class="summary-tile"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`; }
-    function isLikelyMercadona(product) { const text = [product.brands, (product.storesTags || []).join(" ")].join(" ").toLowerCase(); return ["mercadona", "hacendado", "deliplus", "bosque verde", "compy", "9.60"].some(signal => text.includes(signal)); }
+    function detectSupermarkets(product) {
+      const text = [product.brands, product.name, (product.storesTags || []).join(" ")].join(" ").toLowerCase();
+      return SUPERMARKETS.filter(supermarket => supermarket.signals.some(signal => text.includes(signal)));
+    }
     function chip(text, level) { return `<span class="chip ${level}">${escapeHtml(text)}</span>`; }
     function tile(title, value) { return `<div class="tile"><small>${title}</small><strong>${value}</strong></div>`; }
     function formatValue(value, suffix) { return typeof value === "number" ? `${value.toFixed(1)} ${suffix}` : "—"; }
