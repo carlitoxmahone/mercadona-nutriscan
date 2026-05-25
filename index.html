@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f766e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="NutriScan" />
+  <title>Mercadona NutriScan</title>
+  <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f3f4f6;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --primary: #0f766e;
+      --primary-dark: #115e59;
+      --border: #e5e7eb;
+      --good: #15803d;
+      --warn: #b45309;
+      --bad: #b91c1c;
+      --blue: #1d4ed8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+
+    header {
+      background: linear-gradient(135deg, #0f766e, #14b8a6);
+      color: white;
+      padding: 28px 18px 24px;
+      border-bottom-left-radius: 26px;
+      border-bottom-right-radius: 26px;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    header p {
+      margin: 0;
+      color: rgba(255,255,255,.88);
+      font-size: 15px;
+    }
+
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 10px 28px rgba(15, 23, 42, .06);
+      margin-bottom: 16px;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    button, input {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      border-radius: 16px;
+      padding: 14px 16px;
+      background: var(--primary);
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    button.danger {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    button:disabled {
+      opacity: .55;
+      cursor: not-allowed;
+    }
+
+    .manual-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 13px 14px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    #reader {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 20px;
+      background: #111827;
+      margin-top: 12px;
+    }
+
+    .hidden { display: none !important; }
+
+    .status {
+      color: var(--muted);
+      font-size: 14px;
+      margin-top: 10px;
+    }
+
+    .product-title {
+      margin: 0 0 4px;
+      font-size: 24px;
+      line-height: 1.15;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 7px 10px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 10px;
+    }
+
+    .badge.good { background: #dcfce7; color: var(--good); }
+    .badge.warn { background: #fef3c7; color: var(--warn); }
+    .badge.bad { background: #fee2e2; color: var(--bad); }
+    .badge.neutral { background: #dbeafe; color: var(--blue); }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .tile {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 13px;
+      background: #f9fafb;
+    }
+
+    .tile small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 5px;
+    }
+
+    .tile strong {
+      font-size: 18px;
+    }
+
+    .rating h3, .section-title {
+      margin: 0 0 8px;
+      font-size: 18px;
+    }
+
+    .rating p, .ingredients p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .history-item {
+      padding: 12px 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .history-item:first-of-type { border-top: 0; }
+
+    .history-item button {
+      width: 100%;
+      text-align: left;
+      background: transparent;
+      color: var(--text);
+      padding: 0;
+      border-radius: 0;
+      font-weight: 600;
+    }
+
+    .history-item span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      margin-top: 3px;
+    }
+
+    .notice {
+      font-size: 13px;
+      line-height: 1.4;
+      color: var(--muted);
+      margin-top: 12px;
+    }
+
+    @media (min-width: 620px) {
+      .actions { grid-template-columns: 1fr 1fr; }
+      .grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Mercadona NutriScan</h1>
+    <p>Escanea un producto y consulta sus valores nutricionales por 100 g/ml.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <div class="actions">
+        <button id="startBtn">Escanear código de barras</button>
+        <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
+      </div>
+
+      <div class="manual-row">
+        <input id="barcodeInput" inputmode="numeric" placeholder="O escribe el código de barras" />
+        <button id="searchBtn">Buscar</button>
+      </div>
+
+      <div id="reader" class="hidden"></div>
+      <div id="status" class="status">Listo para escanear.</div>
+      <p class="notice">Consejo: en iPhone, úsala desde Safari y permite el acceso a la cámara cuando lo pida.</p>
+    </section>
+
+    <section id="productCard" class="card hidden"></section>
+    <section id="historyCard" class="card hidden"></section>
+  </main>
+
+  <script>
+    const OFF_ENDPOINT = "https://world.openfoodfacts.org/api/v2/product/";
+    const OFF_FIELDS = [
+      "code",
+      "product_name",
+      "brands",
+      "nutriments",
+      "nutrition_grades",
+      "ingredients_text_es",
+      "ingredients_text",
+      "allergens_tags",
+      "stores_tags"
+    ].join(",");
+
+    let scanner = null;
+    let isScanning = false;
+
+    const $ = (id) => document.getElementById(id);
+    const startBtn = $("startBtn");
+    const stopBtn = $("stopBtn");
+    const searchBtn = $("searchBtn");
+    const barcodeInput = $("barcodeInput");
+    const reader = $("reader");
+    const status = $("status");
+    const productCard = $("productCard");
+    const historyCard = $("historyCard");
+
+    startBtn.addEventListener("click", startScanner);
+    stopBtn.addEventListener("click", stopScanner);
+    searchBtn.addEventListener("click", () => searchBarcode(barcodeInput.value.trim()));
+    barcodeInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") searchBarcode(barcodeInput.value.trim());
+    });
+
+    renderHistory();
+
+    async function startScanner() {
+      if (!window.Html5Qrcode) {
+        setStatus("No se ha podido cargar el lector de códigos.");
+        return;
+      }
+
+      reader.classList.remove("hidden");
+      startBtn.disabled = true;
+      stopBtn.disabled = false;
+      setStatus("Iniciando cámara…");
+
+      scanner = new Html5Qrcode("reader", {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128
+        ]
+      });
+
+      try {
+        await scanner.start(
+          { facingMode: "environment" },
+          { fps: 10, qrbox: { width: 280, height: 150 }, aspectRatio: 1.777 },
+          async (decodedText) => {
+            await stopScanner(false);
+            barcodeInput.value = decodedText;
+            await searchBarcode(decodedText);
+          },
+          () => {}
+        );
+        isScanning = true;
+        setStatus("Apunta al código de barras del producto.");
+      } catch (error) {
+        setStatus("No se ha podido abrir la cámara. Revisa permisos o prueba desde Safari con HTTPS.");
+        resetScannerButtons();
+      }
+    }
+
+    async function stopScanner(showMessage = true) {
+      if (scanner && isScanning) {
+        try {
+          await scanner.stop();
+          await scanner.clear();
+        } catch (_) {}
+      }
+      scanner = null;
+      isScanning = false;
+      reader.classList.add("hidden");
+      resetScannerButtons();
+      if (showMessage) setStatus("Cámara detenida.");
+    }
+
+    function resetScannerButtons() {
+      startBtn.disabled = false;
+      stopBtn.disabled = true;
+    }
+
+    async function searchBarcode(barcode) {
+      if (!barcode) {
+        setStatus("Introduce o escanea un código de barras.");
+        return;
+      }
+
+      setStatus(`Buscando producto ${barcode}…`);
+      productCard.classList.add("hidden");
+      productCard.innerHTML = "";
+
+      try {
+        const url = `${OFF_ENDPOINT}${encodeURIComponent(barcode)}?fields=${OFF_FIELDS}`;
+        const response = await fetch(url, {
+          headers: {
+            "Accept": "application/json"
+          }
+        });
+
+        if (!response.ok) throw new Error("Error de conexión");
+
+        const data = await response.json();
+        if (data.status !== 1 || !data.product) {
+          renderNotFound(barcode);
+          setStatus("Producto no encontrado.");
+          return;
+        }
+
+        const product = normalizeProduct(data.product, barcode);
+        renderProduct(product);
+        saveToHistory(product);
+        renderHistory();
+        setStatus("Producto encontrado.");
+      } catch (error) {
+        setStatus("No se ha podido consultar la base de datos. Comprueba la conexión.");
+      }
+    }
+
+    function normalizeProduct(apiProduct, fallbackBarcode) {
+      const n = apiProduct.nutriments || {};
+      const product = {
+        barcode: apiProduct.code || fallbackBarcode,
+        name: clean(apiProduct.product_name) || "Producto sin nombre",
+        brands: clean(apiProduct.brands) || "Marca no disponible",
+        nutritionGrade: clean(apiProduct.nutrition_grades),
+        ingredients: clean(apiProduct.ingredients_text_es) || clean(apiProduct.ingredients_text) || "",
+        allergens: Array.isArray(apiProduct.allergens_tags) ? apiProduct.allergens_tags.map(formatTag) : [],
+        storesTags: Array.isArray(apiProduct.stores_tags) ? apiProduct.stores_tags : [],
+        nutrition: {
+          kcal: numberOrNull(n["energy-kcal_100g"]),
+          proteins: numberOrNull(n.proteins_100g),
+          carbs: numberOrNull(n.carbohydrates_100g),
+          sugars: numberOrNull(n.sugars_100g),
+          fat: numberOrNull(n.fat_100g),
+          saturatedFat: numberOrNull(n["saturated-fat_100g"]),
+          fiber: numberOrNull(n.fiber_100g),
+          salt: numberOrNull(n.salt_100g)
+        }
+      };
+
+      product.isMercadona = isLikelyMercadona(product);
+      product.rating = rateProduct(product);
+      return product;
+    }
+
+    function renderProduct(product) {
+      const badgeClass = product.isMercadona ? "good" : "warn";
+      const badgeText = product.isMercadona ? "Probable producto de Mercadona" : "No parece exclusivo de Mercadona";
+      const ratingClass = product.rating.level;
+
+      productCard.innerHTML = `
+        <h2 class="product-title">${escapeHtml(product.name)}</h2>
+        <div class="subtle">${escapeHtml(product.brands)} · Código: ${escapeHtml(product.barcode)}</div>
+        <div class="badge ${badgeClass}">${badgeText}</div>
+
+        <div class="grid">
+          ${tile("Kcal", formatValue(product.nutrition.kcal, "kcal"))}
+          ${tile("Proteínas", formatValue(product.nutrition.proteins, "g"))}
+          ${tile("Hidratos", formatValue(product.nutrition.carbs, "g"))}
+          ${tile("Azúcares", formatValue(product.nutrition.sugars, "g"))}
+          ${tile("Grasas", formatValue(product.nutrition.fat, "g"))}
+          ${tile("Saturadas", formatValue(product.nutrition.saturatedFat, "g"))}
+          ${tile("Fibra", formatValue(product.nutrition.fiber, "g"))}
+          ${tile("Sal", formatValue(product.nutrition.salt, "g"))}
+        </div>
+
+        <div class="card rating" style="box-shadow:none;margin:16px 0 0;padding:16px;background:#f9fafb;">
+          <h3>Valoración</h3>
+          <div class="badge ${ratingClass}">${escapeHtml(product.rating.title)}</div>
+          <p style="margin-top:10px;">${escapeHtml(product.rating.message)}</p>
+        </div>
+
+        ${product.ingredients ? `
+          <div class="ingredients" style="margin-top:16px;">
+            <h3 class="section-title">Ingredientes</h3>
+            <p>${escapeHtml(product.ingredients)}</p>
+          </div>` : ""}
+
+        ${product.allergens.length ? `
+          <div class="ingredients" style="margin-top:16px;">
+            <h3 class="section-title">Alérgenos</h3>
+            <p>${escapeHtml(product.allergens.join(", "))}</p>
+          </div>` : ""}
+      `;
+
+      productCard.classList.remove("hidden");
+    }
+
+    function renderNotFound(barcode) {
+      productCard.innerHTML = `
+        <h2 class="product-title">Producto no encontrado</h2>
+        <p class="subtle">Código: ${escapeHtml(barcode)}</p>
+        <p style="color:var(--muted);line-height:1.45;">No aparece en Open Food Facts. En la siguiente fase añadiremos una base propia de productos Mercadona y alta manual.</p>
+      `;
+      productCard.classList.remove("hidden");
+    }
+
+    function renderHistory() {
+      const history = getHistory();
+      if (!history.length) {
+        historyCard.classList.add("hidden");
+        return;
+      }
+
+      historyCard.innerHTML = `
+        <h2 class="section-title">Historial</h2>
+        ${history.map(item => `
+          <div class="history-item">
+            <button onclick="searchBarcode('${escapeAttribute(item.barcode)}')">
+              ${escapeHtml(item.name)}
+              <span>${escapeHtml(item.brands)} · ${escapeHtml(item.barcode)}</span>
+            </button>
+          </div>
+        `).join("")}
+        <button class="danger" style="margin-top:12px;" onclick="clearHistory()">Borrar historial</button>
+      `;
+      historyCard.classList.remove("hidden");
+    }
+
+    function saveToHistory(product) {
+      const history = getHistory().filter(item => item.barcode !== product.barcode);
+      history.unshift({
+        barcode: product.barcode,
+        name: product.name,
+        brands: product.brands
+      });
+      localStorage.setItem("nutriscan_history", JSON.stringify(history.slice(0, 20)));
+    }
+
+    function getHistory() {
+      try {
+        return JSON.parse(localStorage.getItem("nutriscan_history") || "[]");
+      } catch (_) {
+        return [];
+      }
+    }
+
+    function clearHistory() {
+      localStorage.removeItem("nutriscan_history");
+      renderHistory();
+    }
+
+    function rateProduct(product) {
+      const n = product.nutrition;
+      const grade = (product.nutritionGrade || "").toLowerCase();
+
+      if (grade === "a" || grade === "b") {
+        return {
+          level: "good",
+          title: "Buena opción",
+          message: "Tiene una valoración nutricional favorable. Aun así, revisa ingredientes y tamaño real de ración."
+        };
+      }
+
+      if ((n.proteins ?? 0) >= 10 && (n.sugars ?? 0) <= 5 && (n.saturatedFat ?? 0) <= 3) {
+        return {
+          level: "good",
+          title: "Interesante para dieta fitness",
+          message: "Buena cantidad de proteína y niveles razonables de azúcar y grasas saturadas por 100 g/ml."
+        };
+      }
+
+      if ((n.sugars ?? 0) > 15 || (n.saturatedFat ?? 0) > 5 || (n.salt ?? 0) > 1.5 || (n.kcal ?? 0) > 450 || grade === "d" || grade === "e") {
+        return {
+          level: "warn",
+          title: "Mejor para consumo ocasional",
+          message: "Presenta valores altos en azúcar, grasas saturadas, sal o densidad calórica. No lo usaría como básico diario."
+        };
+      }
+
+      return {
+        level: "neutral",
+        title: "Aceptable",
+        message: "No destaca negativamente, pero habría que valorar la ración, ingredientes y objetivo concreto de la dieta."
+      };
+    }
+
+    function isLikelyMercadona(product) {
+      const text = [product.brands, product.storesTags.join(" ")].join(" ").toLowerCase();
+      return ["mercadona", "hacendado", "deliplus", "bosque verde", "compy", "9.60"].some(signal => text.includes(signal));
+    }
+
+    function tile(title, value) {
+      return `<div class="tile"><small>${title}</small><strong>${value}</strong></div>`;
+    }
+
+    function formatValue(value, suffix) {
+      return typeof value === "number" ? `${value.toFixed(1)} ${suffix}` : "—";
+    }
+
+    function clean(value) {
+      return typeof value === "string" ? value.trim() : "";
+    }
+
+    function numberOrNull(value) {
+      const number = Number(value);
+      return Number.isFinite(number) ? number : null;
+    }
+
+    function formatTag(value) {
+      return String(value).replace(/^\w+:/, "").replaceAll("-", " ");
+    }
+
+    function setStatus(message) {
+      status.textContent = message;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttribute(value) {
+      return String(value).replaceAll("'", "\\'");
+    }
+  </script>
+</body>
+</html>
