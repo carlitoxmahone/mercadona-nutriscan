@@ -164,7 +164,19 @@
     .tile strong { font-size: 19px; letter-spacing: -.025em; }
     .section-title { margin: 0 0 10px; font-size: 19px; letter-spacing: -.02em; }
 
-    .quantity-box { margin-top: 16px; padding: 15px; border-radius: 24px; background: rgba(255,255,255,.66); border: 1px solid rgba(7,31,29,.065); }
+    .quantity-box { margin-top: 16px; padding: 16px; border-radius: 26px; background: linear-gradient(135deg, rgba(255,255,255,.96), rgba(236,249,246,.88)); border: 1px solid rgba(8,127,115,.11); box-shadow: inset 0 1px 0 rgba(255,255,255,.85); }
+    .product-hero { padding: 16px; border-radius: 28px; background: linear-gradient(135deg, rgba(7,31,29,.96), rgba(8,127,115,.9)); color: white; box-shadow: var(--shadow); }
+    .product-hero .product-title { color: white; }
+    .product-hero .subtle { color: rgba(255,255,255,.72); }
+    .product-hero .chip.neutral { background: rgba(255,255,255,.14); color: white; border-color: rgba(255,255,255,.16); }
+    .product-hero .chip.good { background: rgba(220,252,231,.18); color: #dcfce7; border-color: rgba(220,252,231,.18); }
+    .product-hero .chip.warn { background: rgba(254,243,199,.18); color: #fef3c7; border-color: rgba(254,243,199,.18); }
+    .calculated-card { margin-top: 12px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+    .calc-tile { padding: 10px; border-radius: 17px; background: rgba(255,255,255,.7); border: 1px solid rgba(7,31,29,.06); }
+    .calc-tile small { display: block; color: var(--muted); font-size: 11px; font-weight: 800; margin-bottom: 3px; }
+    .calc-tile strong { display: block; font-size: 16px; letter-spacing: -.03em; }
+    .quick-amounts { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 8px; margin-top: 10px; }
+    .quick-amounts button { min-height: 38px; border-radius: 14px; padding: 8px; font-size: 12px; box-shadow: none; }
     .quantity-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: end; }
     .quantity-row .wide { grid-column: 1 / -1; }
     .scaled-preview { margin-top: 10px; color: var(--muted); font-size: 13px; line-height: 1.45; }
@@ -528,15 +540,17 @@
       const mealName = getMealName(selectedMeal);
 
       productCard.innerHTML = `
-        <div class="product-head">
-          <div>
-            <h2 class="product-title">${escapeHtml(product.name)}</h2>
-            <div class="subtle">${escapeHtml(product.brands)} · ${escapeHtml(product.barcode)}</div>
-            <div class="chip-row">${mercaChip}${sourceChip}${gradeChip}</div>
+        <div class="product-hero">
+          <div class="product-head">
+            <div>
+              <h2 class="product-title">${escapeHtml(product.name)}</h2>
+              <div class="subtle">${escapeHtml(product.brands)} · ${escapeHtml(product.barcode)}</div>
+              <div class="chip-row">${mercaChip}${sourceChip}${gradeChip}</div>
+            </div>
           </div>
         </div>
 
-        <div class="quantity-box" style="margin-top:18px;">
+        <div class="quantity-box">
           <label>¿Cuánto has comido?</label>
           <div class="quantity-row">
             <div class="wide">
@@ -546,6 +560,8 @@
             <button class="wide" onclick="addCurrentProductToMeal()">Añadir a ${escapeHtml(mealName)}</button>
           </div>
           <div id="scaledPreview" class="scaled-preview"></div>
+          <div id="calculatedMacros" class="calculated-card"></div>
+          <div class="quick-amounts"><button class="secondary tiny" onclick="setAmountInput(50)">50 g</button><button class="secondary tiny" onclick="setAmountInput(100)">100 g</button><button class="secondary tiny" onclick="setAmountInput(150)">150 g</button><button class="secondary tiny" onclick="setAmountInput(200)">200 g</button></div>
           ${renderServingsForProduct(product)}
           <div class="serving-actions">
             <button class="secondary tiny" onclick="saveCurrentServing()">Guardar esta cantidad como ración</button>
@@ -595,7 +611,8 @@
       }
       if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Cantidad</span><strong>${formatPlainAmount(amount)} g/ml</strong>`;
       const scaled = scaleNutrition(currentProduct.nutrition, amount);
-      $("scaledPreview").textContent = `Has comido ${formatPlainAmount(amount)} g/ml: ${formatAmount(scaled.kcal, "kcal")}, proteína ${formatAmount(scaled.proteins, "g")}, hidratos ${formatAmount(scaled.carbs, "g")}, grasa ${formatAmount(scaled.fat, "g")}.`;
+      $("scaledPreview").textContent = `Has comido ${formatPlainAmount(amount)} g/ml.`;
+      if ($("calculatedMacros")) $("calculatedMacros").innerHTML = `${calcTile("Kcal", formatAmount(scaled.kcal, "kcal"))}${calcTile("Proteína", formatAmount(scaled.proteins, "g"))}${calcTile("Hidratos", formatAmount(scaled.carbs, "g"))}${calcTile("Grasas", formatAmount(scaled.fat, "g"))}`;
     }
 
     function getCalculatedAmount() {
@@ -1111,6 +1128,7 @@
     }
 
     function summaryTile(label, value) { return `<div class="summary-tile"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`; }
+    function calcTile(label, value) { return `<div class="calc-tile"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`; }
     function detectSupermarkets(product) {
       const text = [product.brands, product.name, product.stores, (product.storesTags || []).join(" ")].join(" ").toLowerCase();
       return SUPERMARKETS.filter(supermarket => supermarket.signals.some(signal => text.includes(signal)));
