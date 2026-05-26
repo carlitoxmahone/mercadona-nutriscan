@@ -211,7 +211,17 @@
     .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; margin-top: 14px; }
     .form-grid .wide { grid-column: 1 / -1; }
     .divider { height: 1px; background: var(--line); margin: 18px 0; }
-    .toast { position: fixed; left: 18px; right: 18px; bottom: calc(18px + env(safe-area-inset-bottom)); z-index: 99; margin: auto; max-width: 520px; padding: 13px 15px; border-radius: 18px; background: rgba(7,31,29,.92); color: white; box-shadow: var(--shadow); opacity: 0; transform: translateY(14px); pointer-events: none; transition: .24s ease; font-weight: 750; }
+    .bottom-nav { position: fixed; left: 14px; right: 14px; bottom: calc(12px + env(safe-area-inset-bottom)); z-index: 90; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 7px; padding: 8px; border-radius: 25px; background: rgba(255,255,255,.78); border: 1px solid rgba(255,255,255,.82); box-shadow: 0 18px 45px rgba(6,33,31,.18); backdrop-filter: blur(22px); }
+    .nav-btn { min-height: 50px; padding: 8px 5px; border-radius: 18px; background: transparent; color: var(--muted); box-shadow: none; border: 0; font-size: 11px; }
+    .nav-btn b { display: block; font-size: 18px; line-height: 1; margin-bottom: 3px; }
+    .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--primary2)); color: white; box-shadow: 0 10px 22px rgba(8,127,115,.22); }
+    .screen-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
+    .screen-title h2 { margin:0; font-size:24px; letter-spacing:-.035em; }
+    .screen-title p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+    .settings-grid { display:grid; gap:12px; }
+    .settings-block { padding:14px; border-radius:22px; background:rgba(255,255,255,.66); border:1px solid rgba(7,31,29,.065); }
+    .settings-block h3 { margin:0 0 8px; font-size:17px; letter-spacing:-.02em; }
+    .toast { position: fixed; left: 18px; right: 18px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 99; margin: auto; max-width: 520px; padding: 13px 15px; border-radius: 18px; background: rgba(7,31,29,.92); color: white; box-shadow: var(--shadow); opacity: 0; transform: translateY(14px); pointer-events: none; transition: .24s ease; font-weight: 750; }
     .toast.show { opacity: 1; transform: translateY(0); }
 
     @media (min-width: 640px) {
@@ -225,7 +235,7 @@
 </head>
 <body>
   <main class="app">
-    <section class="hero">
+    <section id="heroCard" class="hero">
       <div class="hero-top">
         <div class="logo">▦</div>
         <div class="version-pill">Premium v7</div>
@@ -239,7 +249,7 @@
       </div>
     </section>
 
-    <section class="panel scan-card">
+    <section id="scanCard" class="panel scan-card">
       <div class="actions">
         <button id="startBtn">📷 Escanear alimento</button>
         <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
@@ -262,7 +272,14 @@
     <section id="productCard" class="panel hidden"></section>
     <section id="manualCard" class="panel hidden"></section>
     <section id="historyCard" class="panel hidden"></section>
+    <section id="settingsCard" class="panel hidden"></section>
   </main>
+  <nav class="bottom-nav">
+    <button id="navHome" class="nav-btn active" onclick='setScreen("home")'><b>◉</b>Hoy</button>
+    <button id="navScan" class="nav-btn" onclick='setScreen("scan")'><b>▦</b>Escanear</button>
+    <button id="navSaved" class="nav-btn" onclick='setScreen("saved")'><b>★</b>Guardados</button>
+    <button id="navSettings" class="nav-btn" onclick='setScreen("settings")'><b>⚙</b>Ajustes</button>
+  </nav>
   <div id="toast" class="toast"></div>
 
   <script>
@@ -311,6 +328,7 @@
     let torchEnabled = false;
     let selectedMeal = "breakfast";
     let currentProduct = null;
+    let activeScreen = "home";
 
     const $ = id => document.getElementById(id);
     const startBtn = $("startBtn");
@@ -325,6 +343,9 @@
     const productCard = $("productCard");
     const manualCard = $("manualCard");
     const historyCard = $("historyCard");
+    const settingsCard = $("settingsCard");
+    const heroCard = $("heroCard");
+    const scanCard = $("scanCard");
     const toast = $("toast");
 
     startBtn.addEventListener("click", startScanner);
@@ -336,6 +357,8 @@
 
     renderMeals();
     renderHistory();
+    renderSettings();
+    setScreen("home");
 
     async function loadCameras() {
       if (!window.Html5Qrcode) return;
@@ -349,6 +372,19 @@
       } catch (error) {
         cameraSelect.innerHTML = `<option value="">Cámara trasera automática</option>`;
       }
+    }
+
+    function setScreen(screen) {
+      activeScreen = screen;
+      const show = id => { if ($(id)) $(id).classList.remove("hidden"); };
+      const hide = id => { if ($(id)) $(id).classList.add("hidden"); };
+      ["navHome", "navScan", "navSaved", "navSettings"].forEach(id => $(id)?.classList.remove("active"));
+      hide("heroCard"); hide("scanCard"); hide("mealsCard"); hide("productCard"); hide("manualCard"); hide("historyCard"); hide("settingsCard");
+      if (screen === "home") { show("heroCard"); show("mealsCard"); $("navHome")?.classList.add("active"); }
+      if (screen === "scan") { show("scanCard"); if (currentProduct) show("productCard"); $("navScan")?.classList.add("active"); }
+      if (screen === "saved") { show("historyCard"); $("navSaved")?.classList.add("active"); }
+      if (screen === "settings") { renderSettings(); show("settingsCard"); $("navSettings")?.classList.add("active"); }
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
     async function startScanner() {
@@ -465,6 +501,7 @@
       if (localProduct) {
         currentProduct = localProduct;
         renderProduct(localProduct);
+        setScreen("scan");
         saveToHistory(localProduct);
         renderHistory();
         setStatus("Producto encontrado en tu base propia.");
@@ -486,6 +523,7 @@
         const product = normalizeOpenFoodFactsProduct(data.product, barcode);
         currentProduct = product;
         renderProduct(product);
+        setScreen("scan");
         saveToHistory(product);
         renderHistory();
         setStatus("Producto encontrado en Open Food Facts.");
@@ -749,6 +787,7 @@
       if (!product) return;
       currentProduct = product;
       renderProduct(product);
+      setScreen("scan");
       saveToHistory(product);
       renderHistory();
       showToast("Favorito cargado");
@@ -945,6 +984,7 @@
     function clearAllMeals() {
       saveMealsData(createEmptyMeals());
       renderMeals();
+      if (activeScreen === "home") setScreen("home");
       showToast("Día borrado");
     }
 
@@ -1053,6 +1093,24 @@
       renderHistory();
       setStatus("Producto guardado en tu base propia.");
       showToast("Producto guardado en tu base propia");
+    }
+
+    function renderSettings() {
+      const goals = getGoals();
+      settingsCard.innerHTML = `<div class="screen-title"><div><h2>Ajustes</h2><p>Configura objetivos y mantenimiento de la app.</p></div></div><div class="settings-grid"><div class="settings-block"><h3>Objetivos diarios</h3><div class="goal-form"><div><label>Kcal</label><input id="settingsGoalKcal" type="number" inputmode="decimal" value="${goals.kcal}"></div><div><label>Proteína g</label><input id="settingsGoalProteins" type="number" inputmode="decimal" value="${goals.proteins}"></div><div><label>Hidratos g</label><input id="settingsGoalCarbs" type="number" inputmode="decimal" value="${goals.carbs}"></div><div><label>Grasas g</label><input id="settingsGoalFat" type="number" inputmode="decimal" value="${goals.fat}"></div><button class="wide" onclick="saveSettingsGoals()">Guardar objetivos</button></div></div><div class="settings-block"><h3>Datos del día</h3><div class="actions"><button onclick="saveCurrentDay()">Guardar día actual</button><button class="secondary" onclick="saveAndStartNewDay()">Guardar y empezar nuevo día</button><button class="danger" onclick="clearAllMeals()">Borrar día actual</button></div></div><div class="settings-block"><h3>Información</h3><p class="subtle">Los datos se guardan localmente en este dispositivo. Si borras datos de Safari o cambias de móvil, podrías perder productos y días guardados.</p></div></div>`;
+    }
+
+    function saveSettingsGoals() {
+      const goals = {
+        kcal: Number($("settingsGoalKcal").value) || 0,
+        proteins: Number($("settingsGoalProteins").value) || 0,
+        carbs: Number($("settingsGoalCarbs").value) || 0,
+        fat: Number($("settingsGoalFat").value) || 0
+      };
+      localStorage.setItem(GOALS_KEY, JSON.stringify(goals));
+      renderMeals();
+      renderSettings();
+      showToast("Objetivos actualizados");
     }
 
     function renderHistory() {
