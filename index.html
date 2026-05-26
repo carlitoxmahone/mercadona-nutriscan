@@ -215,12 +215,20 @@
     .nav-btn { min-height: 50px; padding: 8px 5px; border-radius: 18px; background: transparent; color: var(--muted); box-shadow: none; border: 0; font-size: 11px; }
     .nav-btn b { display: block; font-size: 18px; line-height: 1; margin-bottom: 3px; }
     .nav-btn.active { background: linear-gradient(135deg, var(--primary), var(--primary2)); color: white; box-shadow: 0 10px 22px rgba(8,127,115,.22); }
+    .settings-gear { position: fixed; top: calc(12px + env(safe-area-inset-top)); right: 16px; z-index: 95; width: 46px; height: 46px; min-height: 46px; padding: 0; border-radius: 17px; background: rgba(255,255,255,.78); color: var(--text); border: 1px solid rgba(255,255,255,.82); box-shadow: 0 12px 30px rgba(6,33,31,.14); backdrop-filter: blur(18px); font-size: 20px; }
     .screen-title { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:12px; }
     .screen-title h2 { margin:0; font-size:24px; letter-spacing:-.035em; }
     .screen-title p { margin:4px 0 0; color:var(--muted); font-size:13px; }
     .settings-grid { display:grid; gap:12px; }
     .settings-block { padding:14px; border-radius:22px; background:rgba(255,255,255,.66); border:1px solid rgba(7,31,29,.065); }
     .settings-block h3 { margin:0 0 8px; font-size:17px; letter-spacing:-.02em; }
+    .health-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; margin-top:10px; }
+    .health-grid .wide { grid-column:1 / -1; }
+    .health-result { margin-top:12px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+    .health-result .result-tile { padding:12px; border-radius:18px; background:rgba(255,255,255,.72); border:1px solid rgba(7,31,29,.065); }
+    .health-result small { display:block; color:var(--muted); font-size:11px; font-weight:850; margin-bottom:4px; }
+    .health-result strong { display:block; font-size:20px; letter-spacing:-.03em; }
+    .health-note { margin-top:10px; color:var(--muted); font-size:12px; line-height:1.4; }
     .recipe-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
     .recipe-filters button { min-height:42px; border-radius:15px; padding:9px; font-size:13px; box-shadow:none; }
     .recipe-filters button.active { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:white; }
@@ -284,14 +292,16 @@
     <section id="manualCard" class="panel hidden"></section>
     <section id="recipesCard" class="panel hidden"></section>
     <section id="historyCard" class="panel hidden"></section>
+    <section id="healthCard" class="panel hidden"></section>
     <section id="settingsCard" class="panel hidden"></section>
   </main>
   <nav class="bottom-nav">
     <button id="navHome" class="nav-btn active" onclick='setScreen("home")'><b>◉</b>Hoy</button>
     <button id="navScan" class="nav-btn" onclick='setScreen("scan")'><b>▦</b>Escanear</button>
     <button id="navRecipes" class="nav-btn" onclick='setScreen("recipes")'><b>🍽️</b>Recetas</button>
-    <button id="navSettings" class="nav-btn" onclick='setScreen("settings")'><b>⚙</b>Ajustes</button>
+    <button id="navHealth" class="nav-btn" onclick='setScreen("health")'><b>♥</b>Salud</button>
   </nav>
+  <button id="settingsGear" class="settings-gear" onclick='setScreen("settings")'>⚙</button>
   <div id="toast" class="toast"></div>
 
   <script>
@@ -304,6 +314,7 @@
     const FAVORITES_KEY = "nutriscan_favorites_v5";
     const DAY_HISTORY_KEY = "nutriscan_day_history_v6";
     const SERVINGS_KEY = "nutriscan_servings_v6";
+    const HEALTH_KEY = "nutriscan_health_v8";
     const MEALS = [
       { id: "breakfast", name: "Desayuno", icon: "☕" },
       { id: "lunch", name: "Comida", icon: "🍽️" },
@@ -359,6 +370,7 @@
     const manualCard = $("manualCard");
     const recipesCard = $("recipesCard");
     const historyCard = $("historyCard");
+    const healthCard = $("healthCard");
     const settingsCard = $("settingsCard");
     const heroCard = $("heroCard");
     const scanCard = $("scanCard");
@@ -374,6 +386,7 @@
     renderMeals();
     renderHistory();
     renderRecipes();
+    renderHealth();
     renderSettings();
     setScreen("home");
 
@@ -395,12 +408,13 @@
       activeScreen = screen;
       const show = id => { if ($(id)) $(id).classList.remove("hidden"); };
       const hide = id => { if ($(id)) $(id).classList.add("hidden"); };
-      ["navHome", "navScan", "navRecipes", "navSettings"].forEach(id => $(id)?.classList.remove("active"));
-      hide("heroCard"); hide("scanCard"); hide("mealsCard"); hide("productCard"); hide("manualCard"); hide("recipesCard"); hide("historyCard"); hide("settingsCard");
+      ["navHome", "navScan", "navRecipes", "navHealth"].forEach(id => $(id)?.classList.remove("active"));
+      hide("heroCard"); hide("scanCard"); hide("mealsCard"); hide("productCard"); hide("manualCard"); hide("recipesCard"); hide("healthCard"); hide("historyCard"); hide("settingsCard");
       if (screen === "home") { show("heroCard"); show("mealsCard"); $("navHome")?.classList.add("active"); }
       if (screen === "scan") { show("scanCard"); if (currentProduct) show("productCard"); $("navScan")?.classList.add("active"); }
       if (screen === "recipes") { renderRecipes(); show("recipesCard"); $("navRecipes")?.classList.add("active"); }
-      if (screen === "settings") { renderSettings(); renderHistory(); show("settingsCard"); show("historyCard"); $("navSettings")?.classList.add("active"); }
+      if (screen === "health") { renderHealth(); show("healthCard"); $("navHealth")?.classList.add("active"); }
+      if (screen === "settings") { renderSettings(); renderHistory(); show("settingsCard"); show("historyCard"); }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -1274,6 +1288,78 @@
       selectedMeal = targetMeal;
       renderMeals();
       showToast(`${recipe.name} añadida a ${getMealName(targetMeal)}`);
+    }
+
+    function renderHealth() {
+      const h = getHealthData();
+      const result = calculateHealthMetrics(h);
+      healthCard.innerHTML = `<div class="screen-title"><div><h2>Salud</h2><p>Composición corporal, gasto estimado y recomendaciones orientativas.</p></div></div><div class="today-card"><h2>Tu estado actual</h2><p>Estimaciones basadas en tus medidas</p><div class="macro-strip"><div class="macro-pill"><small>IMC</small><strong>${escapeHtml(result.bmiText)}</strong></div><div class="macro-pill"><small>Grasa</small><strong>${escapeHtml(result.bodyFatText)}</strong></div><div class="macro-pill"><small>Basal</small><strong>${escapeHtml(result.bmrText)}</strong></div></div></div>${renderHealthSettingsBlock()}`;
+    }
+
+    function renderHealthSettingsBlock() {
+      const h = getHealthData();
+      const result = calculateHealthMetrics(h);
+      return `<div class="settings-block"><h3>Salud y composición corporal</h3><p class="subtle">Calculadora orientativa para IMC, grasa corporal estimada, metabolismo basal y rango de proteína.</p><div class="health-grid"><div><label>Sexo</label><select id="healthSex"><option value="male" ${h.sex === "male" ? "selected" : ""}>Hombre</option><option value="female" ${h.sex === "female" ? "selected" : ""}>Mujer</option></select></div><div><label>Edad</label><input id="healthAge" type="number" inputmode="numeric" value="${h.age || ""}" placeholder="años"></div><div><label>Peso</label><input id="healthWeight" type="number" inputmode="decimal" value="${h.weight || ""}" placeholder="kg"></div><div><label>Altura</label><input id="healthHeight" type="number" inputmode="decimal" value="${h.height || ""}" placeholder="cm"></div><div><label>Cintura</label><input id="healthWaist" type="number" inputmode="decimal" value="${h.waist || ""}" placeholder="cm"></div><div><label>Cuello</label><input id="healthNeck" type="number" inputmode="decimal" value="${h.neck || ""}" placeholder="cm"></div><div class="wide"><label>Cadera solo mujer</label><input id="healthHip" type="number" inputmode="decimal" value="${h.hip || ""}" placeholder="cm"></div><button class="wide" onclick="saveHealthDataFromForm()">Calcular y guardar</button></div><div class="health-result">${healthTile("IMC", result.bmiText)}${healthTile("Grasa estimada", result.bodyFatText)}${healthTile("Metabolismo basal", result.bmrText)}${healthTile("Proteína orientativa", result.proteinText)}</div><p class="health-note">Los resultados son estimaciones, no diagnóstico médico. La grasa corporal por perímetros puede variar según cómo midas cintura, cuello y cadera.</p></div>`;
+    }
+
+    function healthTile(label, value) {
+      return `<div class="result-tile"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`;
+    }
+
+    function getHealthData() {
+      const defaults = { sex: "male", age: "", weight: "", height: "", waist: "", neck: "", hip: "" };
+      try { return { ...defaults, ...JSON.parse(localStorage.getItem(HEALTH_KEY) || "{}") }; } catch (error) { return defaults; }
+    }
+
+    function saveHealthDataFromForm() {
+      const data = {
+        sex: $("healthSex").value,
+        age: $("healthAge").value,
+        weight: $("healthWeight").value,
+        height: $("healthHeight").value,
+        waist: $("healthWaist").value,
+        neck: $("healthNeck").value,
+        hip: $("healthHip").value
+      };
+      localStorage.setItem(HEALTH_KEY, JSON.stringify(data));
+      renderHealth();
+      renderSettings();
+      showToast("Datos de salud actualizados");
+    }
+
+    function calculateHealthMetrics(h) {
+      const weight = Number(String(h.weight).replace(",", "."));
+      const height = Number(String(h.height).replace(",", "."));
+      const age = Number(String(h.age).replace(",", "."));
+      const waist = Number(String(h.waist).replace(",", "."));
+      const neck = Number(String(h.neck).replace(",", "."));
+      const hip = Number(String(h.hip).replace(",", "."));
+      const bmi = weight > 0 && height > 0 ? weight / Math.pow(height / 100, 2) : null;
+      const bmr = weight > 0 && height > 0 && age > 0 ? 10 * weight + 6.25 * height - 5 * age + (h.sex === "female" ? -161 : 5) : null;
+      const bodyFat = estimateBodyFat(h.sex, height, waist, neck, hip);
+      const proteinLow = weight > 0 ? weight * 1.6 : null;
+      const proteinHigh = weight > 0 ? weight * 2.2 : null;
+      return {
+        bmiText: bmi ? bmi.toFixed(1) : "—",
+        bodyFatText: bodyFat ? `${bodyFat.toFixed(1)} %` : "—",
+        bmrText: bmr ? `${Math.round(bmr)} kcal` : "—",
+        proteinText: proteinLow ? `${Math.round(proteinLow)}-${Math.round(proteinHigh)} g` : "—"
+      };
+    }
+
+    function estimateBodyFat(sex, heightCm, waistCm, neckCm, hipCm) {
+      if (!(heightCm > 0 && waistCm > 0 && neckCm > 0)) return null;
+      const height = heightCm / 2.54;
+      const waist = waistCm / 2.54;
+      const neck = neckCm / 2.54;
+      if (sex === "female") {
+        if (!(hipCm > 0)) return null;
+        const hip = hipCm / 2.54;
+        const value = 163.205 * Math.log10(waist + hip - neck) - 97.684 * Math.log10(height) - 78.387;
+        return Number.isFinite(value) ? clamp(value, 3, 60) : null;
+      }
+      const value = 86.01 * Math.log10(waist - neck) - 70.041 * Math.log10(height) + 36.76;
+      return Number.isFinite(value) ? clamp(value, 3, 60) : null;
     }
 
     function renderSettings() {
