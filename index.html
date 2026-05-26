@@ -221,6 +221,17 @@
     .settings-grid { display:grid; gap:12px; }
     .settings-block { padding:14px; border-radius:22px; background:rgba(255,255,255,.66); border:1px solid rgba(7,31,29,.065); }
     .settings-block h3 { margin:0 0 8px; font-size:17px; letter-spacing:-.02em; }
+    .recipe-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
+    .recipe-filters button { min-height:42px; border-radius:15px; padding:9px; font-size:13px; box-shadow:none; }
+    .recipe-filters button.active { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:white; }
+    .recipe-grid { display:grid; gap:10px; margin-top:12px; }
+    .recipe-card { padding:14px; border-radius:22px; background:rgba(255,255,255,.68); border:1px solid rgba(7,31,29,.065); }
+    .recipe-card h3 { margin:0 0 6px; font-size:17px; letter-spacing:-.025em; }
+    .recipe-meta { color:var(--muted); font-size:12px; line-height:1.4; margin-bottom:8px; }
+    .recipe-tags { display:flex; flex-wrap:wrap; gap:6px; margin:8px 0; }
+    .recipe-tags span { border-radius:999px; padding:5px 8px; font-size:11px; font-weight:850; background:#eaf1ff; color:var(--blue); }
+    .recipe-ingredients { color:var(--muted); font-size:13px; line-height:1.45; margin:8px 0 0; }
+    .recipe-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
     .toast { position: fixed; left: 18px; right: 18px; bottom: calc(88px + env(safe-area-inset-bottom)); z-index: 99; margin: auto; max-width: 520px; padding: 13px 15px; border-radius: 18px; background: rgba(7,31,29,.92); color: white; box-shadow: var(--shadow); opacity: 0; transform: translateY(14px); pointer-events: none; transition: .24s ease; font-weight: 750; }
     .toast.show { opacity: 1; transform: translateY(0); }
 
@@ -241,7 +252,7 @@
         <div class="version-pill">Premium v7</div>
       </div>
       <h1>Carlitox NutriScan Supermercados</h1>
-      <p>Tu diario nutricional inteligente para escanear alimentos, controlar macros y revisar ingredientes de forma rápida.</p>
+      <p>Tu diario nutricional inteligente para escanear alimentos, controlar macros y consultar recetas fit.</p>
       <div class="hero-stats">
         <div class="mini-stat"><strong>0-100</strong><span>puntuación</span></div>
         <div class="mini-stat"><strong>Multi</strong><span>supermercado</span></div>
@@ -271,13 +282,14 @@
     <section id="mealsCard" class="panel"></section>
     <section id="productCard" class="panel hidden"></section>
     <section id="manualCard" class="panel hidden"></section>
+    <section id="recipesCard" class="panel hidden"></section>
     <section id="historyCard" class="panel hidden"></section>
     <section id="settingsCard" class="panel hidden"></section>
   </main>
   <nav class="bottom-nav">
     <button id="navHome" class="nav-btn active" onclick='setScreen("home")'><b>◉</b>Hoy</button>
     <button id="navScan" class="nav-btn" onclick='setScreen("scan")'><b>▦</b>Escanear</button>
-    <button id="navSaved" class="nav-btn" onclick='setScreen("saved")'><b>★</b>Guardados</button>
+    <button id="navRecipes" class="nav-btn" onclick='setScreen("recipes")'><b>🍽️</b>Recetas</button>
     <button id="navSettings" class="nav-btn" onclick='setScreen("settings")'><b>⚙</b>Ajustes</button>
   </nav>
   <div id="toast" class="toast"></div>
@@ -307,6 +319,8 @@
       { id: "dia", name: "Dia", signals: ["dia", "el corte inglés", "eroski", "alcampo", "ahorramas"] }
     ];
 
+    const RECIPE_DB = buildRecipeDatabase();
+
     const ADDITIVE_DB = [
       { codes: ["e249"], names: ["nitrito potasico", "nitrito potásico", "potassium nitrite"], label: "E-249 Nitrito potásico", level: "high", group: "Nitritos", note: "Conservante usado sobre todo en carnes procesadas. Conviene limitar el consumo frecuente de embutidos y carnes curadas con nitritos.", related: "Compuestos N-nitrosos y consumo habitual de carnes procesadas." },
       { codes: ["e250"], names: ["nitrito sodico", "nitrito sódico", "sodium nitrite"], label: "E-250 Nitrito sódico", level: "high", group: "Nitritos", note: "Conservante típico en carnes procesadas. Precaución alta si aparece en productos de consumo frecuente.", related: "Formación de nitrosaminas y consumo habitual de carnes procesadas." },
@@ -329,6 +343,7 @@
     let selectedMeal = "breakfast";
     let currentProduct = null;
     let activeScreen = "home";
+    let recipeFilter = "todas";
 
     const $ = id => document.getElementById(id);
     const startBtn = $("startBtn");
@@ -342,6 +357,7 @@
     const mealsCard = $("mealsCard");
     const productCard = $("productCard");
     const manualCard = $("manualCard");
+    const recipesCard = $("recipesCard");
     const historyCard = $("historyCard");
     const settingsCard = $("settingsCard");
     const heroCard = $("heroCard");
@@ -357,6 +373,7 @@
 
     renderMeals();
     renderHistory();
+    renderRecipes();
     renderSettings();
     setScreen("home");
 
@@ -378,12 +395,12 @@
       activeScreen = screen;
       const show = id => { if ($(id)) $(id).classList.remove("hidden"); };
       const hide = id => { if ($(id)) $(id).classList.add("hidden"); };
-      ["navHome", "navScan", "navSaved", "navSettings"].forEach(id => $(id)?.classList.remove("active"));
-      hide("heroCard"); hide("scanCard"); hide("mealsCard"); hide("productCard"); hide("manualCard"); hide("historyCard"); hide("settingsCard");
+      ["navHome", "navScan", "navRecipes", "navSettings"].forEach(id => $(id)?.classList.remove("active"));
+      hide("heroCard"); hide("scanCard"); hide("mealsCard"); hide("productCard"); hide("manualCard"); hide("recipesCard"); hide("historyCard"); hide("settingsCard");
       if (screen === "home") { show("heroCard"); show("mealsCard"); $("navHome")?.classList.add("active"); }
       if (screen === "scan") { show("scanCard"); if (currentProduct) show("productCard"); $("navScan")?.classList.add("active"); }
-      if (screen === "saved") { show("historyCard"); $("navSaved")?.classList.add("active"); }
-      if (screen === "settings") { renderSettings(); show("settingsCard"); $("navSettings")?.classList.add("active"); }
+      if (screen === "recipes") { renderRecipes(); show("recipesCard"); $("navRecipes")?.classList.add("active"); }
+      if (screen === "settings") { renderSettings(); renderHistory(); show("settingsCard"); show("historyCard"); $("navSettings")?.classList.add("active"); }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -955,14 +972,9 @@
     }
 
     function mealItemRow(item) {
-      const scaled = scaleNutrition(item.nutrition, item.amount);
-      return `<div class="meal-item"><div><strong>${escapeHtml(item.name)}</strong><span>${escapeHtml(item.amount)} g/ml · ${formatAmount(scaled.kcal, "kcal")} · proteína ${formatAmount(scaled.proteins, "g")}</span></div><button class="danger tiny" onclick='removeMealItem("${selectedMeal}", "${escapeJs(item.id)}")'>Quitar</button></div>`;
-    }
-
-    function selectMeal(mealId) {
-      selectedMeal = mealId;
-      renderMeals();
-      if (currentProduct) renderProduct(currentProduct);
+      const scaled = getItemNutrition(item);
+      const amountText = item.type === "recipe" ? `${formatPlainAmount(item.amount || 1)} ración(es)` : `${escapeHtml(item.amount)} g/ml`;
+      return `<div class="meal-item"><div><strong>${escapeHtml(item.name)}</strong><span>${amountText} · ${formatAmount(scaled.kcal, "kcal")} · proteína ${formatAmount(scaled.proteins, "g")}</span></div><button class="danger tiny" onclick='removeMealItem("${selectedMeal}", "${escapeJs(item.id)}")'>Quitar</button></div>`;
     }
 
     function removeMealItem(mealId, itemId) {
@@ -1018,7 +1030,7 @@
 
     function calculateMealTotals(items) {
       return items.reduce((totals, item) => {
-        const scaled = scaleNutrition(item.nutrition, item.amount);
+        const scaled = getItemNutrition(item);
         totals.kcal += scaled.kcal || 0;
         totals.proteins += scaled.proteins || 0;
         totals.carbs += scaled.carbs || 0;
@@ -1029,6 +1041,16 @@
         totals.salt += scaled.salt || 0;
         return totals;
       }, emptyNutrition());
+    }
+
+    function getItemNutrition(item) {
+      if (item.type === "recipe") {
+        const servings = Number(item.amount) || 1;
+        const scaled = {};
+        Object.keys(emptyNutrition()).forEach(key => { scaled[key] = typeof item.nutrition[key] === "number" ? item.nutrition[key] * servings : 0; });
+        return scaled;
+      }
+      return scaleNutrition(item.nutrition, item.amount);
     }
 
     function scaleNutrition(nutrition, amount) {
@@ -1093,6 +1115,67 @@
       renderHistory();
       setStatus("Producto guardado en tu base propia.");
       showToast("Producto guardado en tu base propia");
+    }
+
+    function buildRecipeDatabase() {
+      const recipes = [];
+      const add = (name, type, tags, kcal, proteins, carbs, fat, time, ingredients) => recipes.push({ id: `r${recipes.length + 1}`, name, type, tags, kcal, proteins, carbs, fat, time, ingredients });
+      const desayunos = ["Tortitas de avena y claras", "Bowl de yogur proteico", "Porridge de avena y plátano", "Tostada de pavo y queso fresco", "Revuelto de claras con espinacas", "Yogur con frutos rojos y avena", "Tortilla francesa con pan integral", "Smoothie de proteína y plátano", "Queso fresco batido con cacao", "Avena nocturna con yogur", "Tostada de aguacate y huevo", "Mugcake proteico", "Crepes de claras", "Bol de skyr con cereales", "Pan integral con atún", "Huevos con tomate y pavo", "Avena con manzana y canela", "Batido de yogur y fresas", "Tostada de crema de cacahuete ligera", "Tortilla de avena salada"];
+      desayunos.forEach((n, i) => add(n, "desayuno", ["alta proteína", i % 3 === 0 ? "rápida" : "saciante"], 280 + (i % 5) * 35, 22 + (i % 6) * 3, 28 + (i % 4) * 8, 6 + (i % 4) * 2, `${8 + (i % 5) * 2} min`, ["base proteica", "hidrato limpio", "fruta o verdura", "canela/especias"]));
+      const comidas = ["Arroz con pollo y verduras", "Pasta integral con pavo", "Bowl de quinoa con atún", "Patata cocida con huevos", "Wrap de pollo y ensalada", "Ensalada de garbanzos y atún", "Ternera magra con arroz", "Pollo al curry fit", "Lentejas con verduras", "Salmón con patata", "Pavo con cous cous", "Tacos fit de pollo", "Burrito bowl alto en proteína", "Fajitas de ternera magra", "Merluza con arroz y verduras", "Ensalada de pasta y pollo", "Garbanzos con huevo duro", "Arroz tres delicias fit", "Poke bowl de salmón", "Tofu con arroz y verduras", "Hamburguesa de pollo casera", "Albóndigas de pavo fit", "Cuscús con garbanzos", "Pollo con boniato", "Pasta con atún y tomate", "Ensalada campera fit", "Arroz con huevo y verduras", "Pavo salteado con fideos", "Judías con atún", "Pollo teriyaki ligero"];
+      comidas.forEach((n, i) => add(n, "comida", ["alta proteína", i % 4 === 0 ? "batch cooking" : "completa"], 430 + (i % 6) * 45, 32 + (i % 7) * 4, 45 + (i % 6) * 8, 9 + (i % 5) * 3, `${15 + (i % 6) * 5} min`, ["proteína magra", "arroz/pasta/patata/legumbre", "verduras", "especias"]));
+      const cenas = ["Tortilla de claras con verduras", "Merluza con ensalada", "Ensalada de pollo", "Revuelto de gambas", "Crema de verduras con huevo", "Atún con tomate y patata", "Pollo a la plancha con ensalada", "Pavo con verduras salteadas", "Salmón con espárragos", "Tortilla de calabacín", "Queso fresco con tomate y pavo", "Ensalada de salmón ahumado", "Huevos revueltos con champiñones", "Wrap ligero de atún", "Sopa de verduras con pollo", "Tofu salteado con verduras", "Bacalao con pisto", "Tortilla francesa con ensalada", "Sepia con verduras", "Bol de ensalada con huevo"];
+      cenas.forEach((n, i) => add(n, "cena", ["ligera", "alta proteína", i % 3 === 0 ? "baja kcal" : "rápida"], 260 + (i % 5) * 35, 25 + (i % 6) * 4, 12 + (i % 4) * 6, 8 + (i % 4) * 3, `${10 + (i % 5) * 3} min`, ["proteína", "verduras", "guarnición ligera", "especias"]));
+      const postres = ["Flan proteico casero", "Mousse de yogur y cacao", "Helado fit de plátano", "Tarta fría de queso batido", "Brownie de avena fit", "Natillas proteicas", "Gelatina con yogur", "Manzana al micro con canela", "Cheesecake proteico", "Pudin de chía", "Tiramisú fit", "Galletas de avena y plátano", "Crema de cacao proteica", "Arroz con leche fit", "Vasito de skyr y frutos rojos", "Bizcocho proteico al micro", "Trufas fit de cacao", "Yogur helado con fruta", "Pancake dulce proteico", "Copa de queso batido y cacao", "Barrita casera de avena", "Macedonia con yogur", "Mousse de fresa fit", "Tortita dulce de claras", "Cacao caliente proteico", "Pera con yogur y canela", "Crema de limón fit", "Mini brownie de calabaza", "Bol de fruta con skyr", "Postre de café proteico"];
+      postres.forEach((n, i) => add(n, "postre", ["postre fit", i % 2 === 0 ? "alta proteína" : "baja kcal"], 140 + (i % 6) * 25, 12 + (i % 5) * 3, 12 + (i % 6) * 5, 2 + (i % 4) * 2, `${5 + (i % 5) * 3} min`, ["yogur/skyr/queso batido", "fruta o cacao", "endulzante opcional", "avena o chía opcional"]));
+      return recipes.slice(0, 100);
+    }
+
+    function renderRecipes() {
+      const filters = ["todas", "desayuno", "comida", "cena", "postre", "alta proteína", "rápida", "baja kcal"];
+      const filtered = RECIPE_DB.filter(recipe => recipeFilter === "todas" || recipe.type === recipeFilter || recipe.tags.includes(recipeFilter));
+      recipesCard.innerHTML = `<div class="screen-title"><div><h2>Recetas fit</h2><p>100 recetas fitness para desayunos, comidas, cenas y postres.</p></div><button class="tiny" onclick="randomRecipe()">Receta aleatoria</button></div><div class="recipe-filters">${filters.map(filter => `<button class="secondary ${recipeFilter === filter ? "active" : ""}" onclick='setRecipeFilter("${escapeJs(filter)}")'>${escapeHtml(filter[0].toUpperCase() + filter.slice(1))}</button>`).join("")}</div><div class="recipe-grid">${filtered.map(recipe => recipeCard(recipe)).join("")}</div>`;
+    }
+
+    function recipeCard(recipe) {
+      return `<div class="recipe-card"><h3>${escapeHtml(recipe.name)}</h3><div class="recipe-meta">${escapeHtml(recipe.time)} · por ración aprox: ${formatAmount(recipe.kcal, "kcal")} · proteína ${formatAmount(recipe.proteins, "g")} · hidratos ${formatAmount(recipe.carbs, "g")} · grasas ${formatAmount(recipe.fat, "g")}</div><div class="recipe-tags">${recipe.tags.map(tag => `<span>${escapeHtml(tag)}</span>`).join("")}</div><p class="recipe-ingredients"><strong>Receta base:</strong> ${escapeHtml(recipe.ingredients.join(" · "))}</p><div class="quantity-box" style="margin-top:10px;padding:12px;"><label>Raciones o cantidad que vas a comer</label><input id="recipeQty-${recipe.id}" inputmode="decimal" type="number" step="0.5" min="0" value="1" placeholder="Ej. 1, 1.5, 2"></div><div class="recipe-actions"><button onclick='addRecipeToMeal("${recipe.id}", "breakfast")'>Desayuno</button><button onclick='addRecipeToMeal("${recipe.id}", "lunch")'>Comida</button><button onclick='addRecipeToMeal("${recipe.id}", "snack")'>Merienda</button><button onclick='addRecipeToMeal("${recipe.id}", "dinner")'>Cena</button></div></div>`;
+    }
+
+    function setRecipeFilter(filter) {
+      recipeFilter = filter;
+      renderRecipes();
+    }
+
+    function randomRecipe() {
+      const pool = RECIPE_DB.filter(recipe => recipeFilter === "todas" || recipe.type === recipeFilter || recipe.tags.includes(recipeFilter));
+      const recipe = pool[Math.floor(Math.random() * pool.length)];
+      if (!recipe) return;
+      recipeFilter = "todas";
+      recipesCard.innerHTML = `<div class="screen-title"><div><h2>Receta para hoy</h2><p>Una opción rápida para cuando no sabes qué comer.</p></div><button class="tiny secondary" onclick="renderRecipes()">Volver</button></div>${recipeCard(recipe)}`;
+    }
+
+    function addRecipeToMeal(recipeId, mealId) {
+      const recipe = RECIPE_DB.find(item => item.id === recipeId);
+      if (!recipe) return;
+      const qtyInput = $(`recipeQty-${recipe.id}`);
+      const servings = qtyInput ? Number(qtyInput.value.replace(",", ".")) : 1;
+      if (!Number.isFinite(servings) || servings <= 0) { showToast("Introduce una cantidad válida"); return; }
+      const targetMeal = mealId || selectedMeal;
+      const meals = getMealsData();
+      meals[targetMeal].push({
+        id: String(Date.now()) + String(Math.random()).slice(2),
+        type: "recipe",
+        barcode: recipe.id,
+        name: recipe.name,
+        brands: "Receta fit",
+        amount: servings,
+        nutrition: { kcal: recipe.kcal, proteins: recipe.proteins, carbs: recipe.carbs, sugars: 0, fat: recipe.fat, saturatedFat: 0, fiber: 0, salt: 0 },
+        addedAt: new Date().toISOString()
+      });
+      saveMealsData(meals);
+      selectedMeal = targetMeal;
+      renderMeals();
+      showToast(`${recipe.name} añadida a ${getMealName(targetMeal)}`);
     }
 
     function renderSettings() {
