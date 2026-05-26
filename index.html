@@ -227,7 +227,7 @@
       <div id="reader" class="hidden"></div>
       <div id="status" class="status">Listo para escanear.</div>
       <div class="scan-help">Para mejorar la lectura: usa buena luz, separa el móvil 10-20 cm, coloca el código horizontal y evita reflejos. Si falla, elige otra cámara o activa la linterna.</div>
-      <p class="notice">Elige una comida, escanea un alimento y añade la cantidad real consumida. Los cálculos salen a partir de los valores por 100 g/ml.</p>
+      <p class="notice">La app no pide permiso de cámara al abrirse. Solo lo pedirá cuando pulses Escanear código.</p>
     </section>
 
     <section id="mealsCard" class="panel"></section>
@@ -306,7 +306,6 @@
     cameraSelect.addEventListener("change", () => { selectedCameraId = cameraSelect.value; if (isScanning) restartScanner(); });
     torchBtn.addEventListener("click", toggleTorch);
 
-    loadCameras();
     renderMeals();
     renderHistory();
 
@@ -326,6 +325,7 @@
 
     async function startScanner() {
       if (!window.Html5Qrcode) { setStatus("No se ha podido cargar el lector de códigos."); return; }
+      await loadCameras();
       reader.classList.remove("hidden");
       startBtn.disabled = true;
       stopBtn.disabled = false;
