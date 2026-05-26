@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#071f1d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="NutriScan" />
-  <title>Mercadona NutriScan</title>
+  <title>NutriScan Supermercados</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
@@ -63,7 +63,7 @@
     .panel { background: var(--card); border: 1px solid rgba(255,255,255,.72); border-radius: var(--radius); padding: 16px; box-shadow: var(--soft-shadow); backdrop-filter: blur(20px); margin-bottom: 16px; animation: appear .28s ease both; }
     @keyframes appear { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-    button, input, textarea { font: inherit; }
+    button, input, textarea, select { font: inherit; }
     button { border: 0; min-height: 52px; border-radius: 19px; padding: 14px 16px; background: linear-gradient(135deg, var(--primary), var(--primary2)); color: white; font-weight: 850; letter-spacing: -.01em; cursor: pointer; box-shadow: 0 12px 24px rgba(8,127,115,.25); transition: transform .15s ease, opacity .15s ease; }
     button:active { transform: scale(.985); }
     button:disabled { opacity: .55; cursor: not-allowed; box-shadow: none; }
@@ -71,13 +71,16 @@
     button.danger { background: #fff0ee; color: var(--bad); box-shadow: none; border: 1px solid rgba(179,38,30,.12); }
     button.tiny { min-height: 36px; padding: 8px 11px; border-radius: 13px; font-size: 13px; box-shadow: none; }
 
-    input, textarea { width: 100%; border: 1px solid var(--line); border-radius: 18px; padding: 14px 15px; background: rgba(255,255,255,.92); color: var(--text); outline: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
-    input:focus, textarea:focus { border-color: rgba(8,127,115,.38); box-shadow: 0 0 0 4px rgba(18,184,166,.12); }
+    input, textarea, select { width: 100%; border: 1px solid var(--line); border-radius: 18px; padding: 14px 15px; background: rgba(255,255,255,.92); color: var(--text); outline: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.8); }
+    input:focus, textarea:focus, select:focus { border-color: rgba(8,127,115,.38); box-shadow: 0 0 0 4px rgba(18,184,166,.12); }
     textarea { min-height: 96px; resize: vertical; }
     label { display: block; margin: 0 0 7px; color: var(--muted); font-size: 12px; font-weight: 850; text-transform: uppercase; letter-spacing: .055em; }
 
     .actions { display: grid; grid-template-columns: 1fr; gap: 10px; }
     .manual-row { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; }
+    .scanner-tools { display: grid; grid-template-columns: 1fr auto; gap: 8px; margin-top: 10px; }
+    .scanner-tools select { min-height: 48px; }
+    .scan-help { margin-top: 10px; padding: 11px 12px; border-radius: 16px; background: rgba(8,127,115,.08); color: var(--muted); font-size: 12px; line-height: 1.4; }
     #reader { width: 100%; overflow: hidden; border-radius: 24px; background: #071f1d; margin-top: 12px; border: 1px solid rgba(7,31,29,.12); }
     .hidden { display: none !important; }
     .status, .subtle, .notice { color: var(--muted); line-height: 1.43; }
@@ -190,11 +193,11 @@
         <div class="logo">▦</div>
         <div class="version-pill">Meals v4</div>
       </div>
-      <h1>Mercadona NutriScan</h1>
-      <p>Escanea productos, ajusta cantidades y construye tu día por desayuno, comida, merienda y cena.</p>
+      <h1>NutriScan Supermercados</h1>
+      <p>Escanea productos de Mercadona, Consum, Lidl, Aldi, Carrefour, Dia y otros supermercados. Ajusta cantidades y construye tu día por comidas.</p>
       <div class="hero-stats">
         <div class="mini-stat"><strong>0-100</strong><span>puntuación</span></div>
-        <div class="mini-stat"><strong>4</strong><span>comidas</span></div>
+        <div class="mini-stat"><strong>Multi</strong><span>supermercado</span></div>
         <div class="mini-stat"><strong>g/ml</strong><span>cantidad</span></div>
       </div>
     </section>
@@ -208,8 +211,13 @@
         <input id="barcodeInput" inputmode="numeric" placeholder="Código de barras" />
         <button id="searchBtn">Buscar</button>
       </div>
+      <div class="scanner-tools">
+        <select id="cameraSelect" aria-label="Seleccionar cámara"><option value="">Cámara trasera automática</option></select>
+        <button id="torchBtn" class="secondary tiny" type="button">Linterna</button>
+      </div>
       <div id="reader" class="hidden"></div>
       <div id="status" class="status">Listo para escanear.</div>
+      <div class="scan-help">Para mejorar la lectura: usa buena luz, separa el móvil 10-20 cm, coloca el código horizontal y evita reflejos. Si falla, elige otra cámara o activa la linterna.</div>
       <p class="notice">Elige una comida, escanea un alimento y añade la cantidad real consumida. Los cálculos salen a partir de los valores por 100 g/ml.</p>
     </section>
 
@@ -222,7 +230,7 @@
 
   <script>
     const OFF_ENDPOINT = "https://world.openfoodfacts.org/api/v2/product/";
-    const OFF_FIELDS = ["code","product_name","brands","nutriments","nutrition_grades","ingredients_text_es","ingredients_text","allergens_tags","stores_tags"].join(",");
+    const OFF_FIELDS = ["code","product_name","brands","nutriments","nutrition_grades","ingredients_text_es","ingredients_text","allergens_tags","stores_tags","stores"].join(",");
     const HISTORY_KEY = "nutriscan_history_v3";
     const LOCAL_PRODUCTS_KEY = "nutriscan_local_products_v3";
     const MEALS_KEY = "nutriscan_meals_v4";
@@ -236,10 +244,21 @@
       { id: "snack", name: "Merienda" },
       { id: "dinner", name: "Cena" }
     ];
+    const SUPERMARKETS = [
+      { id: "mercadona", name: "Mercadona", signals: ["mercadona", "hacendado", "deliplus", "bosque verde", "compy", "9.60"] },
+      { id: "consum", name: "Consum", signals: ["consum", "consum basic", "consum eco", "consum kids"] },
+      { id: "lidl", name: "Lidl", signals: ["lidl", "milbona", "cien", "deluxe", "chef select", "freshona", "solevita", "mcennedy", "combino", "fin carre", "vitafit"] },
+      { id: "aldi", name: "Aldi", signals: ["aldi", "milsani", "gutbio", "el mercado", "la villa", "golden bridge", "special"] },
+      { id: "carrefour", name: "Carrefour", signals: ["carrefour", "carrefour classic", "carrefour extra", "carrefour bio", "carrefour selection"] },
+      { id: "dia", name: "Dia", signals: ["dia", "el corte inglés", "eroski", "alcampo", "ahorramas"] }
+    ];
 
     let scanner = null;
     let isScanning = false;
     let lastBarcode = "";
+    let availableCameras = [];
+    let selectedCameraId = "";
+    let torchEnabled = false;
     let selectedMeal = "breakfast";
     let currentProduct = null;
 
@@ -248,6 +267,8 @@
     const stopBtn = $("stopBtn");
     const searchBtn = $("searchBtn");
     const barcodeInput = $("barcodeInput");
+    const cameraSelect = $("cameraSelect");
+    const torchBtn = $("torchBtn");
     const reader = $("reader");
     const status = $("status");
     const mealsCard = $("mealsCard");
@@ -260,24 +281,109 @@
     stopBtn.addEventListener("click", stopScanner);
     searchBtn.addEventListener("click", () => searchBarcode(barcodeInput.value.trim()));
     barcodeInput.addEventListener("keydown", event => { if (event.key === "Enter") searchBarcode(barcodeInput.value.trim()); });
+    cameraSelect.addEventListener("change", () => { selectedCameraId = cameraSelect.value; if (isScanning) restartScanner(); });
+    torchBtn.addEventListener("click", toggleTorch);
 
+    loadCameras();
     renderMeals();
     renderHistory();
+
+    async function loadCameras() {
+      if (!window.Html5Qrcode) return;
+      try {
+        availableCameras = await Html5Qrcode.getCameras();
+        if (!availableCameras.length) return;
+        cameraSelect.innerHTML = availableCameras.map(camera => `<option value="${escapeAttribute(camera.id)}">${escapeHtml(camera.label || "Cámara")}</option>`).join("");
+        const backCamera = availableCameras.find(camera => /back|rear|trasera|environment|0/i.test(camera.label)) || availableCameras[availableCameras.length - 1];
+        selectedCameraId = backCamera.id;
+        cameraSelect.value = selectedCameraId;
+      } catch (error) {
+        cameraSelect.innerHTML = `<option value="">Cámara trasera automática</option>`;
+      }
+    }
 
     async function startScanner() {
       if (!window.Html5Qrcode) { setStatus("No se ha podido cargar el lector de códigos."); return; }
       reader.classList.remove("hidden");
       startBtn.disabled = true;
       stopBtn.disabled = false;
+      torchEnabled = false;
+      torchBtn.textContent = "Linterna";
       setStatus("Iniciando cámara…");
-      scanner = new Html5Qrcode("reader", { formatsToSupport: [Html5QrcodeSupportedFormats.EAN_13, Html5QrcodeSupportedFormats.EAN_8, Html5QrcodeSupportedFormats.UPC_A, Html5QrcodeSupportedFormats.UPC_E, Html5QrcodeSupportedFormats.CODE_128] });
+
+      scanner = new Html5Qrcode("reader", {
+        formatsToSupport: [
+          Html5QrcodeSupportedFormats.EAN_13,
+          Html5QrcodeSupportedFormats.EAN_8,
+          Html5QrcodeSupportedFormats.UPC_A,
+          Html5QrcodeSupportedFormats.UPC_E,
+          Html5QrcodeSupportedFormats.CODE_128,
+          Html5QrcodeSupportedFormats.CODE_39,
+          Html5QrcodeSupportedFormats.ITF
+        ],
+        experimentalFeatures: { useBarCodeDetectorIfSupported: true },
+        verbose: false
+      });
+
+      const cameraConfig = selectedCameraId ? { deviceId: { exact: selectedCameraId } } : { facingMode: { exact: "environment" } };
+      const scannerConfig = {
+        fps: 18,
+        qrbox: responsiveQrbox,
+        aspectRatio: 1.777,
+        disableFlip: false,
+        videoConstraints: {
+          facingMode: "environment",
+          focusMode: "continuous",
+          width: { ideal: 1920 },
+          height: { ideal: 1080 }
+        }
+      };
+
       try {
-        await scanner.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 285, height: 155 }, aspectRatio: 1.777 }, async decodedText => { await stopScanner(false); barcodeInput.value = decodedText; await searchBarcode(decodedText); }, () => {});
+        await scanner.start(cameraConfig, scannerConfig, async decodedText => {
+          await stopScanner(false);
+          barcodeInput.value = decodedText;
+          await searchBarcode(decodedText);
+        }, () => {});
         isScanning = true;
-        setStatus("Apunta al código de barras del producto.");
+        setStatus("Escáner activo. Centra el código de barras dentro del recuadro.");
       } catch (error) {
-        setStatus("No se ha podido abrir la cámara. Revisa permisos o prueba desde Safari con HTTPS.");
-        resetScannerButtons();
+        try {
+          await scanner.start({ facingMode: "environment" }, scannerConfig, async decodedText => {
+            await stopScanner(false);
+            barcodeInput.value = decodedText;
+            await searchBarcode(decodedText);
+          }, () => {});
+          isScanning = true;
+          setStatus("Escáner activo. Centra el código de barras dentro del recuadro.");
+        } catch (secondError) {
+          setStatus("No se ha podido abrir la cámara. Revisa permisos o prueba otra cámara del selector.");
+          resetScannerButtons();
+        }
+      }
+    }
+
+    function responsiveQrbox(viewfinderWidth, viewfinderHeight) {
+      const width = Math.floor(Math.min(viewfinderWidth * 0.92, 520));
+      const height = Math.floor(Math.max(130, Math.min(viewfinderHeight * 0.32, 220)));
+      return { width, height };
+    }
+
+    async function restartScanner() {
+      await stopScanner(false);
+      await startScanner();
+    }
+
+    async function toggleTorch() {
+      if (!scanner || !isScanning) { showToast("Activa primero la cámara"); return; }
+      try {
+        torchEnabled = !torchEnabled;
+        await scanner.applyVideoConstraints({ advanced: [{ torch: torchEnabled }] });
+        torchBtn.textContent = torchEnabled ? "Apagar" : "Linterna";
+      } catch (error) {
+        torchEnabled = false;
+        torchBtn.textContent = "Linterna";
+        showToast("La linterna no está disponible en esta cámara");
       }
     }
 
@@ -286,6 +392,8 @@
       scanner = null;
       isScanning = false;
       reader.classList.add("hidden");
+      torchEnabled = false;
+      torchBtn.textContent = "Linterna";
       resetScannerButtons();
       if (showMessage) setStatus("Cámara detenida.");
     }
@@ -348,6 +456,7 @@
         ingredients: clean(apiProduct.ingredients_text_es) || clean(apiProduct.ingredients_text) || "",
         allergens: Array.isArray(apiProduct.allergens_tags) ? apiProduct.allergens_tags.map(formatTag) : [],
         storesTags: Array.isArray(apiProduct.stores_tags) ? apiProduct.stores_tags : [],
+        stores: clean(apiProduct.stores) || "",
         nutrition: {
           kcal: numberOrNull(n["energy-kcal_100g"]),
           proteins: numberOrNull(n.proteins_100g),
@@ -392,26 +501,21 @@
           <div><h3>${escapeHtml(product.rating.title)}</h3><p>${escapeHtml(product.rating.message)}</p></div>
         </div>
         <div class="quantity-box">
-          <label>Cantidad consumida</label>
+          <label>¿Cuánto has comido?</label>
           <div class="quantity-row">
-            <div>
-              <label>Base</label>
-              <input id="unitAmountInput" inputmode="decimal" type="number" step="0.1" min="0" value="1" oninput="updateScaledPreview()" placeholder="Ej. 1 g">
+            <div class="wide">
+              <input id="amountInput" inputmode="decimal" type="number" step="1" min="0" value="100" oninput="updateScaledPreview()" placeholder="Introduce el peso en gramos o ml">
             </div>
-            <div>
-              <label>Multiplicador</label>
-              <input id="multiplierInput" inputmode="decimal" type="number" step="0.1" min="0" value="100" oninput="updateScaledPreview()" placeholder="Ej. 35">
-            </div>
-            <div id="totalAmountPreview" class="total-preview wide"><span>Total</span><strong>100 g/ml</strong></div>
+            <div id="totalAmountPreview" class="total-preview wide"><span>Cantidad</span><strong>100 g/ml</strong></div>
             <button class="wide" onclick="addCurrentProductToMeal()">Añadir a ${escapeHtml(mealName)}</button>
           </div>
           <div id="scaledPreview" class="scaled-preview"></div>
           ${renderServingsForProduct(product)}
           <div class="serving-actions">
-            <button class="secondary tiny" onclick="saveCurrentServing()">Guardar ración</button>
-            <button class="secondary tiny" onclick="setQuantityInputs(1, 100)">Reset 100 g</button>
+            <button class="secondary tiny" onclick="saveCurrentServing()">Guardar esta cantidad como ración</button>
+            <button class="secondary tiny" onclick="setAmountInput(100)">100 g/ml</button>
           </div>
-          <p class="notice">Ejemplo: base 1 g × 35 = 35 g. También puedes guardar raciones como 1 yogur = 125 g o 1 lata = 52 g.</p>
+          <p class="notice">Escanea el alimento, mira la etiqueta nutricional por 100 g/ml y escribe el peso real que has comido. La app calcula el total automáticamente.</p>
         </div>
         <div class="grid">
           ${tile("Kcal", formatValue(product.nutrition.kcal, "kcal"))}
@@ -436,23 +540,21 @@
     }
 
     function updateScaledPreview() {
-      if (!currentProduct || !$("unitAmountInput") || !$("multiplierInput")) return;
+      if (!currentProduct || !$("amountInput")) return;
       const amount = getCalculatedAmount();
       if (!Number.isFinite(amount) || amount <= 0) {
-        $("scaledPreview").textContent = "Introduce una cantidad válida.";
-        if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Total</span><strong>—</strong>`;
+        $("scaledPreview").textContent = "Introduce el peso que has comido.";
+        if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Cantidad</span><strong>—</strong>`;
         return;
       }
-      if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Total</span><strong>${formatPlainAmount(amount)} g/ml</strong>`;
+      if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Cantidad</span><strong>${formatPlainAmount(amount)} g/ml</strong>`;
       const scaled = scaleNutrition(currentProduct.nutrition, amount);
-      $("scaledPreview").textContent = `Para ${formatPlainAmount(amount)} g/ml: ${formatAmount(scaled.kcal, "kcal")}, proteína ${formatAmount(scaled.proteins, "g")}, hidratos ${formatAmount(scaled.carbs, "g")}, grasa ${formatAmount(scaled.fat, "g")}.`;
+      $("scaledPreview").textContent = `Has comido ${formatPlainAmount(amount)} g/ml: ${formatAmount(scaled.kcal, "kcal")}, proteína ${formatAmount(scaled.proteins, "g")}, hidratos ${formatAmount(scaled.carbs, "g")}, grasa ${formatAmount(scaled.fat, "g")}.`;
     }
 
     function getCalculatedAmount() {
-      const base = Number($("unitAmountInput").value.replace(",", "."));
-      const multiplier = Number($("multiplierInput").value.replace(",", "."));
-      if (!Number.isFinite(base) || !Number.isFinite(multiplier)) return NaN;
-      return base * multiplier;
+      const amount = Number($("amountInput").value.replace(",", "."));
+      return Number.isFinite(amount) ? amount : NaN;
     }
 
     function addCurrentProductToMeal() {
@@ -573,6 +675,12 @@
       showToast("Favorito cargado");
     }
 
+    function supermarketOptions(product = null) {
+      const detected = product?.supermarkets?.[0]?.id || "";
+      const options = [`<option value="">Sin asignar</option>`].concat(SUPERMARKETS.map(supermarket => `<option value="${escapeAttribute(supermarket.name)}" ${supermarket.id === detected ? "selected" : ""}>${escapeHtml(supermarket.name)}</option>`));
+      return options.join("");
+    }
+
     function renderServingsForProduct(product) {
       const servings = getServingsForBarcode(product.barcode);
       if (!servings.length) return "";
@@ -580,14 +688,13 @@
     }
 
     function applyServing(grams) {
-      setQuantityInputs(grams, 1);
+      setAmountInput(grams);
       updateScaledPreview();
       showToast(`Ración aplicada: ${formatPlainAmount(grams)} g/ml`);
     }
 
-    function setQuantityInputs(base, multiplier) {
-      if ($("unitAmountInput")) $("unitAmountInput").value = base;
-      if ($("multiplierInput")) $("multiplierInput").value = multiplier;
+    function setAmountInput(amount) {
+      if ($("amountInput")) $("amountInput").value = amount;
       updateScaledPreview();
     }
 
@@ -772,7 +879,7 @@
 
     function openManualForm(barcode = lastBarcode, product = null) {
       const n = product?.nutrition || {};
-      manualCard.innerHTML = `<h2 class="section-title">Guardar en mi base</h2><p class="subtle">Introduce los datos por 100 g/ml de la etiqueta. Se guardan solo en este dispositivo.</p><div class="form-grid"><div class="wide"><label>Código de barras</label><input id="manualBarcode" inputmode="numeric" value="${escapeAttribute(barcode || "")}"></div><div class="wide"><label>Nombre</label><input id="manualName" value="${escapeAttribute(product?.name || "")}" placeholder="Ej. Pechuga de pollo"></div><div class="wide"><label>Marca</label><input id="manualBrands" value="${escapeAttribute(product?.brands || "Hacendado")}" placeholder="Hacendado, Consum, Milbona, Aldi..."></div>${numberInput("manualKcal", "Kcal", n.kcal)}${numberInput("manualProteins", "Proteínas g", n.proteins)}${numberInput("manualCarbs", "Hidratos g", n.carbs)}${numberInput("manualSugars", "Azúcares g", n.sugars)}${numberInput("manualFat", "Grasas g", n.fat)}${numberInput("manualSaturatedFat", "Saturadas g", n.saturatedFat)}${numberInput("manualFiber", "Fibra g", n.fiber)}${numberInput("manualSalt", "Sal g", n.salt)}<div class="wide"><label>Ingredientes</label><textarea id="manualIngredients" placeholder="Copia los ingredientes si quieres tenerlos guardados">${escapeHtml(product?.ingredients || "")}</textarea></div></div><div class="actions" style="margin-top:14px"><button onclick="saveManualProduct()">Guardar producto</button><button class="secondary" onclick="manualCard.classList.add('hidden')">Cancelar</button></div>`;
+      manualCard.innerHTML = `<h2 class="section-title">Guardar en mi base</h2><p class="subtle">Introduce los datos por 100 g/ml de la etiqueta. Se guardan solo en este dispositivo.</p><div class="form-grid"><div class="wide"><label>Código de barras</label><input id="manualBarcode" inputmode="numeric" value="${escapeAttribute(barcode || "")}"></div><div class="wide"><label>Nombre</label><input id="manualName" value="${escapeAttribute(product?.name || "")}" placeholder="Ej. Pechuga de pollo"></div><div class="wide"><label>Marca</label><input id="manualBrands" value="${escapeAttribute(product?.brands || "")}" placeholder="Hacendado, Consum, Milbona, Aldi..."></div><div class="wide"><label>Supermercado</label><select id="manualSupermarket">${supermarketOptions(product)}</select></div>${numberInput("manualKcal", "Kcal", n.kcal)}${numberInput("manualProteins", "Proteínas g", n.proteins)}${numberInput("manualCarbs", "Hidratos g", n.carbs)}${numberInput("manualSugars", "Azúcares g", n.sugars)}${numberInput("manualFat", "Grasas g", n.fat)}${numberInput("manualSaturatedFat", "Saturadas g", n.saturatedFat)}${numberInput("manualFiber", "Fibra g", n.fiber)}${numberInput("manualSalt", "Sal g", n.salt)}<div class="wide"><label>Ingredientes</label><textarea id="manualIngredients" placeholder="Copia los ingredientes si quieres tenerlos guardados">${escapeHtml(product?.ingredients || "")}</textarea></div></div><div class="actions" style="margin-top:14px"><button onclick="saveManualProduct()">Guardar producto</button><button class="secondary" onclick="manualCard.classList.add('hidden')">Cancelar</button></div>`;
       manualCard.classList.remove("hidden");
       manualCard.scrollIntoView({ behavior: "smooth", block: "start" });
     }
@@ -789,11 +896,12 @@
         barcode,
         name,
         brands: $("manualBrands").value.trim() || "Marca propia",
+        stores: $("manualSupermarket").value,
         source: "Base propia",
         nutritionGrade: "",
         ingredients: $("manualIngredients").value.trim(),
         allergens: [],
-        storesTags: [],
+        storesTags: $("manualSupermarket").value ? [$("manualSupermarket").value] : [],
         nutrition: {
           kcal: inputNumber("manualKcal"),
           proteins: inputNumber("manualProteins"),
@@ -891,7 +999,7 @@
 
     function summaryTile(label, value) { return `<div class="summary-tile"><small>${escapeHtml(label)}</small><strong>${escapeHtml(value)}</strong></div>`; }
     function detectSupermarkets(product) {
-      const text = [product.brands, product.name, (product.storesTags || []).join(" ")].join(" ").toLowerCase();
+      const text = [product.brands, product.name, product.stores, (product.storesTags || []).join(" ")].join(" ").toLowerCase();
       return SUPERMARKETS.filter(supermarket => supermarket.signals.some(signal => text.includes(signal)));
     }
     function chip(text, level) { return `<span class="chip ${level}">${escapeHtml(text)}</span>`; }
