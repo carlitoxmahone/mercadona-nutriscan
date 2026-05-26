@@ -229,6 +229,32 @@
     .health-result small { display:block; color:var(--muted); font-size:11px; font-weight:850; margin-bottom:4px; }
     .health-result strong { display:block; font-size:20px; letter-spacing:-.03em; }
     .health-note { margin-top:10px; color:var(--muted); font-size:12px; line-height:1.4; }
+    .bmi-guide { margin-top:14px; padding:14px; border-radius:24px; background:rgba(255,255,255,.68); border:1px solid rgba(7,31,29,.065); }
+    .bmi-guide h3 { margin:0 0 6px; font-size:17px; letter-spacing:-.02em; }
+    .bmi-guide p { margin:0; color:var(--muted); font-size:13px; line-height:1.45; }
+    .bmi-current { margin-top:12px; display:flex; align-items:center; justify-content:space-between; gap:10px; padding:12px; border-radius:18px; background:rgba(8,127,115,.08); border:1px solid rgba(8,127,115,.12); }
+    .bmi-current strong { display:block; font-size:22px; letter-spacing:-.03em; }
+    .bmi-current span { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+    .bmi-state-pill { display:inline-flex; align-items:center; justify-content:center; min-height:34px; padding:8px 12px; border-radius:999px; font-size:12px; font-weight:850; white-space:nowrap; }
+    .bmi-state-pill.low { background:#eaf1ff; color:var(--blue); }
+    .bmi-state-pill.normal { background:#e2f8ea; color:var(--good); }
+    .bmi-state-pill.warn { background:#fff2d8; color:var(--warn); }
+    .bmi-state-pill.high { background:#ffebe8; color:var(--bad); }
+    .bmi-bar { display:grid; grid-template-columns:18.5fr 6.4fr 5fr 10fr; gap:6px; margin-top:14px; }
+    .bmi-segment { height:12px; border-radius:999px; opacity:.55; }
+    .bmi-segment.low { background:#93c5fd; }
+    .bmi-segment.normal { background:#86efac; }
+    .bmi-segment.warn { background:#fcd34d; }
+    .bmi-segment.high { background:#fca5a5; }
+    .bmi-segment.active { opacity:1; box-shadow:0 0 0 2px rgba(7,31,29,.08); }
+    .bmi-ranges { display:grid; gap:8px; margin-top:14px; }
+    .bmi-range-card { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:10px; padding:12px; border-radius:18px; background:rgba(255,255,255,.72); border:1px solid rgba(7,31,29,.06); }
+    .bmi-range-card.active { border-color:rgba(8,127,115,.28); background:rgba(8,127,115,.08); }
+    .bmi-figure { width:34px; height:34px; border-radius:12px; display:grid; place-items:center; font-size:20px; background:rgba(8,127,115,.08); }
+    .bmi-range-card strong { display:block; font-size:14px; letter-spacing:-.02em; }
+    .bmi-range-card span { display:block; color:var(--muted); font-size:12px; margin-top:2px; }
+    .bmi-range-value { font-size:12px; font-weight:800; color:var(--muted); white-space:nowrap; }
+    .bmi-note { margin-top:12px; font-size:12px; color:var(--muted); line-height:1.45; }
     .recipe-filters { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; margin:12px 0; }
     .recipe-filters button { min-height:42px; border-radius:15px; padding:9px; font-size:13px; box-shadow:none; }
     .recipe-filters button.active { background:linear-gradient(135deg,var(--primary),var(--primary2)); color:white; }
@@ -257,10 +283,10 @@
     <section id="heroCard" class="hero">
       <div class="hero-top">
         <div class="logo">▦</div>
-        <div class="version-pill">Premium v7</div>
+        <div class="version-pill">Revisado v8</div>
       </div>
       <h1>Carlitox NutriScan Supermercados</h1>
-      <p>Tu diario nutricional inteligente para escanear alimentos, controlar macros y consultar recetas fit.</p>
+      <p>Escanea alimentos, controla macros, consulta recetas fit y revisa tu salud corporal desde una app más ordenada.</p>
       <div class="hero-stats">
         <div class="mini-stat"><strong>0-100</strong><span>puntuación</span></div>
         <div class="mini-stat"><strong>Multi</strong><span>supermercado</span></div>
@@ -1293,7 +1319,27 @@
     function renderHealth() {
       const h = getHealthData();
       const result = calculateHealthMetrics(h);
-      healthCard.innerHTML = `<div class="screen-title"><div><h2>Salud</h2><p>Composición corporal, gasto estimado y recomendaciones orientativas.</p></div></div><div class="today-card"><h2>Tu estado actual</h2><p>Estimaciones basadas en tus medidas</p><div class="macro-strip"><div class="macro-pill"><small>IMC</small><strong>${escapeHtml(result.bmiText)}</strong></div><div class="macro-pill"><small>Grasa</small><strong>${escapeHtml(result.bodyFatText)}</strong></div><div class="macro-pill"><small>Basal</small><strong>${escapeHtml(result.bmrText)}</strong></div></div></div>${renderHealthSettingsBlock()}`;
+      healthCard.innerHTML = `<div class="screen-title"><div><h2>Salud</h2><p>Composición corporal, gasto estimado y recomendaciones orientativas.</p></div></div><div class="today-card"><h2>Tu estado actual</h2><p>Estimaciones basadas en tus medidas</p><div class="macro-strip"><div class="macro-pill"><small>IMC</small><strong>${escapeHtml(result.bmiText)}</strong></div><div class="macro-pill"><small>Grasa</small><strong>${escapeHtml(result.bodyFatText)}</strong></div><div class="macro-pill"><small>Basal</small><strong>${escapeHtml(result.bmrText)}</strong></div></div></div>${renderBmiGuide(result.bmiValue)}${renderHealthSettingsBlock()}`;
+    }
+
+    function getBmiCategory(bmi) {
+      if (!bmi || !Number.isFinite(bmi)) return { key: "none", label: "Sin datos", className: "low" };
+      if (bmi < 18.5) return { key: "low", label: "Bajo peso", className: "low" };
+      if (bmi < 25) return { key: "normal", label: "Normopeso", className: "normal" };
+      if (bmi < 30) return { key: "warn", label: "Sobrepeso", className: "warn" };
+      return { key: "high", label: "Obesidad", className: "high" };
+    }
+
+    function renderBmiGuide(bmi) {
+      const category = getBmiCategory(bmi);
+      const valueText = bmi ? bmi.toFixed(1) : "—";
+      const ranges = [
+        { key: "low", label: "Bajo peso", range: "< 18,5", icon: "🧍" },
+        { key: "normal", label: "Normopeso", range: "18,5 - 24,9", icon: "🧍" },
+        { key: "warn", label: "Sobrepeso", range: "25 - 29,9", icon: "🧍" },
+        { key: "high", label: "Obesidad", range: "≥ 30", icon: "🧍" }
+      ];
+      return `<div class="bmi-guide"><h3>Guía de IMC</h3><p>Interpretación orientativa del índice de masa corporal.</p><div class="bmi-current"><div><strong>${escapeHtml(valueText)}</strong><span>Tu IMC actual</span></div><div class="bmi-state-pill ${category.className}">${escapeHtml(category.label)}</div></div><div class="bmi-bar"><div class="bmi-segment low ${category.key === "low" ? "active" : ""}"></div><div class="bmi-segment normal ${category.key === "normal" ? "active" : ""}"></div><div class="bmi-segment warn ${category.key === "warn" ? "active" : ""}"></div><div class="bmi-segment high ${category.key === "high" ? "active" : ""}"></div></div><div class="bmi-ranges">${ranges.map(item => `<div class="bmi-range-card ${category.key === item.key ? "active" : ""}"><div class="bmi-figure">${item.icon}</div><div><strong>${escapeHtml(item.label)}</strong><span>${category.key === item.key ? "Tu rango actual" : "Rango de referencia"}</span></div><div class="bmi-range-value">${escapeHtml(item.range)}</div></div>`).join("")}</div><div class="bmi-note">El IMC es una medida orientativa y no distingue entre grasa y masa muscular. Si tienes bastante masa muscular, puede sobreestimar tu estado real.</div></div>`;
     }
 
     function renderHealthSettingsBlock() {
@@ -1340,6 +1386,7 @@
       const proteinLow = weight > 0 ? weight * 1.6 : null;
       const proteinHigh = weight > 0 ? weight * 2.2 : null;
       return {
+        bmiValue: bmi,
         bmiText: bmi ? bmi.toFixed(1) : "—",
         bodyFatText: bodyFat ? `${bodyFat.toFixed(1)} %` : "—",
         bmrText: bmr ? `${Math.round(bmr)} kcal` : "—",
