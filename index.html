@@ -87,9 +87,25 @@
     .status { font-size: 14px; margin-top: 12px; }
     .notice { font-size: 12px; margin: 12px 2px 0; }
 
-    .tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 14px; }
-    .meal-tab { min-height: 44px; padding: 10px 8px; border-radius: 16px; background: rgba(255,255,255,.7); color: var(--text); box-shadow: none; border: 1px solid var(--line); font-size: 13px; }
-    .meal-tab.active { background: linear-gradient(135deg, var(--primary), var(--primary2)); color: white; border: 0; box-shadow: 0 10px 22px rgba(8,127,115,.22); }
+    .today-card { position: relative; overflow: hidden; padding: 18px; border-radius: 28px; background: linear-gradient(135deg, rgba(7,31,29,.96), rgba(8,127,115,.93)); color: white; box-shadow: var(--shadow); }
+    .today-card:after { content:""; position:absolute; right:-70px; top:-70px; width:190px; height:190px; border-radius:999px; background:rgba(255,255,255,.12); }
+    .today-card h2 { position:relative; margin:0 0 6px; font-size:28px; letter-spacing:-.04em; }
+    .today-card p { position:relative; margin:0; color:rgba(255,255,255,.76); font-size:14px; }
+    .today-kcal { position:relative; margin-top:16px; display:flex; align-items:end; justify-content:space-between; gap:14px; }
+    .today-kcal strong { font-size:42px; line-height:.9; letter-spacing:-.06em; }
+    .today-kcal span { display:block; margin-top:4px; color:rgba(255,255,255,.72); font-size:13px; }
+    .macro-strip { position:relative; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
+    .macro-pill { padding:10px; border-radius:17px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.14); backdrop-filter:blur(10px); }
+    .macro-pill small { display:block; color:rgba(255,255,255,.68); font-size:11px; font-weight:800; }
+    .macro-pill strong { display:block; margin-top:3px; font-size:15px; }
+    .tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
+    .meal-tab { min-height: 82px; padding: 13px; border-radius: 22px; background: rgba(255,255,255,.72); color: var(--text); box-shadow: none; border: 1px solid rgba(7,31,29,.07); font-size: 13px; text-align:left; }
+    .meal-tab .meal-icon { display:inline-grid; place-items:center; width:32px; height:32px; border-radius:13px; background:rgba(8,127,115,.09); margin-bottom:8px; }
+    .meal-tab strong { display:block; font-size:15px; letter-spacing:-.02em; }
+    .meal-tab span { display:block; margin-top:3px; color:var(--muted); font-size:12px; font-weight:600; }
+    .meal-tab.active { background: linear-gradient(135deg, var(--primary), var(--primary2)); color: white; border: 0; box-shadow: 0 14px 28px rgba(8,127,115,.25); }
+    .meal-tab.active span { color:rgba(255,255,255,.78); }
+    .meal-tab.active .meal-icon { background:rgba(255,255,255,.16); }
 
     .daily-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
     .summary-tile { padding: 13px; border-radius: 20px; background: rgba(255,255,255,.66); border: 1px solid rgba(7,31,29,.065); }
@@ -200,10 +216,10 @@
     <section class="hero">
       <div class="hero-top">
         <div class="logo">▦</div>
-        <div class="version-pill">Meals v4</div>
+        <div class="version-pill">Premium v7</div>
       </div>
       <h1>Carlitox NutriScan Supermercados</h1>
-      <p>Escanea productos de Mercadona, Consum, Lidl, Aldi, Carrefour, Dia y otros supermercados. Ajusta cantidades y construye tu día por comidas.</p>
+      <p>Tu diario nutricional inteligente para escanear alimentos, controlar macros y revisar ingredientes de forma rápida.</p>
       <div class="hero-stats">
         <div class="mini-stat"><strong>0-100</strong><span>puntuación</span></div>
         <div class="mini-stat"><strong>Multi</strong><span>supermercado</span></div>
@@ -213,7 +229,7 @@
 
     <section class="panel scan-card">
       <div class="actions">
-        <button id="startBtn">Escanear código</button>
+        <button id="startBtn">📷 Escanear alimento</button>
         <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
       </div>
       <div class="manual-row">
@@ -248,10 +264,10 @@
     const DAY_HISTORY_KEY = "nutriscan_day_history_v6";
     const SERVINGS_KEY = "nutriscan_servings_v6";
     const MEALS = [
-      { id: "breakfast", name: "Desayuno" },
-      { id: "lunch", name: "Comida" },
-      { id: "snack", name: "Merienda" },
-      { id: "dinner", name: "Cena" }
+      { id: "breakfast", name: "Desayuno", icon: "☕" },
+      { id: "lunch", name: "Comida", icon: "🍽️" },
+      { id: "snack", name: "Merienda", icon: "🥪" },
+      { id: "dinner", name: "Cena", icon: "🌙" }
     ];
     const SUPERMARKETS = [
       { id: "mercadona", name: "Mercadona", signals: ["mercadona", "hacendado", "deliplus", "bosque verde", "compy", "9.60"] },
@@ -506,11 +522,11 @@
     function renderProduct(product) {
       const scoreClass = product.scoreLevel === "good" ? "" : product.scoreLevel;
       const scoreDeg = Math.round(product.score * 3.6);
-      const supermarketLabel = product.supermarkets?.length ? product.supermarkets.map(item => item.name).join(", ") : "Supermercado no detectado";
-      const mercaChip = product.supermarkets?.length ? chip(supermarketLabel, "good") : chip("Supermercado no detectado", "warn");
+      const mercaChip = product.supermarkets?.length ? chip(product.supermarkets.map(item => item.name).join(", "), "good") : chip("Supermercado no detectado", "warn");
       const sourceChip = chip(product.source || "Base externa", "neutral");
       const gradeChip = product.nutritionGrade ? chip(`Nutri-Score ${product.nutritionGrade.toUpperCase()}`, "neutral") : "";
       const mealName = getMealName(selectedMeal);
+
       productCard.innerHTML = `
         <div class="product-head">
           <div>
@@ -519,11 +535,8 @@
             <div class="chip-row">${mercaChip}${sourceChip}${gradeChip}</div>
           </div>
         </div>
-        <div class="score-box">
-          <div class="score-circle ${scoreClass}" style="--score-deg:${scoreDeg}deg"><span>${product.score}</span></div>
-          <div><h3>${escapeHtml(product.rating.title)}</h3><p>${escapeHtml(product.rating.message)}</p></div>
-        </div>
-        <div class="quantity-box">
+
+        <div class="quantity-box" style="margin-top:18px;">
           <label>¿Cuánto has comido?</label>
           <div class="quantity-row">
             <div class="wide">
@@ -538,8 +551,16 @@
             <button class="secondary tiny" onclick="saveCurrentServing()">Guardar esta cantidad como ración</button>
             <button class="secondary tiny" onclick="setAmountInput(100)">100 g/ml</button>
           </div>
-          <p class="notice">Escanea el alimento, mira la etiqueta nutricional por 100 g/ml y escribe el peso real que has comido. La app calcula el total automáticamente.</p>
+          <p class="notice">Primero escribe lo que has comido. La app calcula los valores reales y lo añade a la comida seleccionada.</p>
         </div>
+
+        <div class="score-box">
+          <div class="score-circle ${scoreClass}" style="--score-deg:${scoreDeg}deg"><span>${product.score}</span></div>
+          <div><h3>${escapeHtml(product.rating.title)}</h3><p>${escapeHtml(product.rating.message)}</p></div>
+        </div>
+
+        <div class="divider"></div>
+        <h3 class="section-title">Valores por 100 g/ml</h3>
         <div class="grid">
           ${tile("Kcal", formatValue(product.nutrition.kcal, "kcal"))}
           ${tile("Proteínas", formatValue(product.nutrition.proteins, "g"))}
@@ -550,6 +571,7 @@
           ${tile("Fibra", formatValue(product.nutrition.fiber, "g"))}
           ${tile("Sal", formatValue(product.nutrition.salt, "g"))}
         </div>
+
         <div class="divider"></div>
         <h3 class="section-title">Semáforo nutricional</h3>
         <div class="traffic">${product.indicators.map(indicator => trafficRow(indicator)).join("")}</div>
@@ -606,21 +628,37 @@
       const selectedItems = meals[selectedMeal] || [];
       const dayTotals = calculateMealTotals(Object.values(meals).flat());
       const mealTotals = calculateMealTotals(selectedItems);
+      const goals = getGoals();
+      const kcalRemaining = goals.kcal - dayTotals.kcal;
+      const kcalText = kcalRemaining >= 0 ? `Te quedan ${formatAmount(kcalRemaining, "kcal")}` : `Te has pasado ${formatAmount(Math.abs(kcalRemaining), "kcal")}`;
+
       mealsCard.innerHTML = `
-        <h2 class="section-title">Plan del día</h2>
-        <p class="subtle">Selecciona una comida, escanea alimentos y añade la cantidad real consumida.</p>
-        <div class="tabs">${MEALS.map(meal => `<button class="meal-tab ${meal.id === selectedMeal ? "active" : ""}" onclick='selectMeal("${meal.id}")'>${meal.name}</button>`).join("")}</div>
-        <div class="daily-summary">
-          ${summaryTile("Kcal día", formatAmount(dayTotals.kcal, "kcal"))}
-          ${summaryTile("Proteínas", formatAmount(dayTotals.proteins, "g"))}
-          ${summaryTile("Hidratos", formatAmount(dayTotals.carbs, "g"))}
-          ${summaryTile("Grasas", formatAmount(dayTotals.fat, "g"))}
+        <div class="today-card">
+          <h2>Hoy</h2>
+          <p>${escapeHtml(kcalText)}</p>
+          <div class="today-kcal">
+            <div><strong>${formatAmount(dayTotals.kcal, "kcal").replace(" kcal", "")}</strong><span>de ${formatAmount(goals.kcal, "kcal")}</span></div>
+            <button class="tiny secondary" onclick="saveCurrentDay()">Guardar</button>
+          </div>
+          <div class="macro-strip">
+            <div class="macro-pill"><small>Proteína</small><strong>${formatAmount(dayTotals.proteins, "g")}</strong></div>
+            <div class="macro-pill"><small>Hidratos</small><strong>${formatAmount(dayTotals.carbs, "g")}</strong></div>
+            <div class="macro-pill"><small>Grasas</small><strong>${formatAmount(dayTotals.fat, "g")}</strong></div>
+          </div>
         </div>
+
+        <div class="tabs">
+          ${MEALS.map(meal => {
+            const total = calculateMealTotals(meals[meal.id] || []);
+            return `<button class="meal-tab ${meal.id === selectedMeal ? "active" : ""}" onclick='selectMeal("${meal.id}")'><span class="meal-icon">${meal.icon}</span><strong>${meal.name}</strong><span>${formatAmount(total.kcal, "kcal")} · ${formatAmount(total.proteins, "g")} prot.</span></button>`;
+          }).join("")}
+        </div>
+
         ${renderGoalsPanel(dayTotals)}
         ${renderFavoritesPanel()}
         <div class="divider"></div>
         <h3 class="section-title">${escapeHtml(getMealName(selectedMeal))}</h3>
-        <p class="subtle">Total comida: ${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</p>
+        <p class="subtle">Total: ${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</p>
         <div class="meal-list">${selectedItems.length ? selectedItems.map(item => mealItemRow(item)).join("") : `<p class="notice">Todavía no has añadido alimentos a esta comida.</p>`}</div>
         <div class="actions" style="margin-top:14px"><button onclick="saveCurrentDay()">Guardar día</button><button class="secondary" onclick="saveAndStartNewDay()">Guardar y nuevo día</button><button class="secondary" onclick="clearSelectedMeal()">Vaciar ${escapeHtml(getMealName(selectedMeal))}</button><button class="danger" onclick="clearAllMeals()">Borrar todo el día</button></div>${renderDayHistoryPanel()}`;
     }
