@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="theme-color" content="#071f1d" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="NutriScan" />
-  <title>NutriScan Supermercados</title>
+  <meta name="apple-mobile-web-app-title" content="Carlitox NutriScan" />
+  <title>Carlitox NutriScan Supermercados</title>
   <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
   <style>
     :root {
@@ -167,6 +167,15 @@
 
     .ingredients { margin-top: 16px; padding: 15px; border-radius: 22px; background: rgba(255,255,255,.62); border: 1px solid rgba(7,31,29,.065); }
     .ingredients p { margin: 0; color: var(--muted); line-height: 1.48; font-size: 14px; }
+    .additive-list { display: grid; gap: 10px; margin-top: 12px; }
+    .additive-card { padding: 13px; border-radius: 18px; background: rgba(255,255,255,.68); border: 1px solid rgba(7,31,29,.065); }
+    .additive-card strong { display:block; font-size: 14px; margin-bottom: 4px; }
+    .additive-card p { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.4; }
+    .additive-level { display:inline-flex; border-radius:999px; padding:5px 8px; font-size:11px; font-weight:850; margin-top:6px; }
+    .additive-level.high { background:#ffebe8; color:var(--bad); }
+    .additive-level.medium { background:#fff2d8; color:var(--warn); }
+    .additive-level.low { background:#e2f8ea; color:var(--good); }
+    .additive-level.info { background:#eaf1ff; color:var(--blue); }
     .history-item { padding: 12px 0; border-top: 1px solid var(--line); }
     .history-item:first-of-type { border-top: 0; }
     .history-item button { width: 100%; min-height: 0; text-align: left; background: transparent; color: var(--text); padding: 0; border-radius: 0; box-shadow: none; font-weight: 850; }
@@ -193,7 +202,7 @@
         <div class="logo">▦</div>
         <div class="version-pill">Meals v4</div>
       </div>
-      <h1>NutriScan Supermercados</h1>
+      <h1>Carlitox NutriScan Supermercados</h1>
       <p>Escanea productos de Mercadona, Consum, Lidl, Aldi, Carrefour, Dia y otros supermercados. Ajusta cantidades y construye tu día por comidas.</p>
       <div class="hero-stats">
         <div class="mini-stat"><strong>0-100</strong><span>puntuación</span></div>
@@ -251,6 +260,19 @@
       { id: "aldi", name: "Aldi", signals: ["aldi", "milsani", "gutbio", "el mercado", "la villa", "golden bridge", "special"] },
       { id: "carrefour", name: "Carrefour", signals: ["carrefour", "carrefour classic", "carrefour extra", "carrefour bio", "carrefour selection"] },
       { id: "dia", name: "Dia", signals: ["dia", "el corte inglés", "eroski", "alcampo", "ahorramas"] }
+    ];
+
+    const ADDITIVE_DB = [
+      { codes: ["e249"], names: ["nitrito potasico", "nitrito potásico", "potassium nitrite"], label: "E-249 Nitrito potásico", level: "high", group: "Nitritos", note: "Conservante usado sobre todo en carnes procesadas. Conviene limitar el consumo frecuente de embutidos y carnes curadas con nitritos.", related: "Compuestos N-nitrosos y consumo habitual de carnes procesadas." },
+      { codes: ["e250"], names: ["nitrito sodico", "nitrito sódico", "sodium nitrite"], label: "E-250 Nitrito sódico", level: "high", group: "Nitritos", note: "Conservante típico en carnes procesadas. Precaución alta si aparece en productos de consumo frecuente.", related: "Formación de nitrosaminas y consumo habitual de carnes procesadas." },
+      { codes: ["e251"], names: ["nitrato sodico", "nitrato sódico", "sodium nitrate"], label: "E-251 Nitrato sódico", level: "medium", group: "Nitratos", note: "Puede aparecer en carnes curadas. Mejor consumo ocasional si forma parte de ultraprocesados cárnicos.", related: "Puede transformarse en nitritos según contexto y condiciones." },
+      { codes: ["e252"], names: ["nitrato potasico", "nitrato potásico", "potassium nitrate"], label: "E-252 Nitrato potásico", level: "medium", group: "Nitratos", note: "Usado en curados. No es lo mismo que verduras ricas en nitratos; el contexto del producto importa.", related: "Carnes curadas y posible formación de compuestos N-nitrosos." },
+      { codes: ["e220", "e221", "e222", "e223", "e224", "e225", "e226", "e227", "e228"], names: ["sulfitos", "sulfito", "dioxido de azufre", "dióxido de azufre", "metabisulfito", "bisulfito"], label: "E-220 a E-228 Sulfitos", level: "medium", group: "Sulfitos", note: "Pueden ser relevantes en personas sensibles, especialmente con asma o sensibilidad a sulfitos.", related: "Sensibilidad a sulfitos, síntomas respiratorios en personas susceptibles." },
+      { codes: ["e210", "e211", "e212", "e213"], names: ["acido benzoico", "ácido benzoico", "benzoato sodico", "benzoato sódico", "benzoato potasico", "benzoato potásico", "benzoatos"], label: "E-210 a E-213 Benzoatos", level: "medium", group: "Benzoatos", note: "Conservantes autorizados. Mejor vigilar si aparecen a menudo en refrescos, salsas o ultraprocesados.", related: "Sensibilidad individual; consumo frecuente de ultraprocesados." },
+      { codes: ["e200", "e201", "e202", "e203"], names: ["acido sorbico", "ácido sórbico", "sorbato potasico", "sorbato potásico", "sorbato calcico", "sorbato cálcico", "sorbatos"], label: "E-200 a E-203 Sorbatos", level: "low", group: "Sorbatos", note: "Conservantes habituales. En general son de menor preocupación, aunque indican producto procesado.", related: "Posible sensibilidad individual; marcador de producto procesado." },
+      { codes: ["e338", "e339", "e340", "e341", "e343", "e450", "e451", "e452"], names: ["fosfatos", "fosfato", "difosfatos", "trifosfatos", "polifosfatos", "acido fosforico", "ácido fosfórico"], label: "Fosfatos", level: "medium", group: "Fosfatos", note: "Aditivos frecuentes en procesados cárnicos, quesos fundidos y refrescos. Conviene moderar si aparecen mucho en la dieta.", related: "Carga de fósforo dietético; especial precaución en enfermedad renal." },
+      { codes: ["e300", "e301", "e302"], names: ["acido ascorbico", "ácido ascórbico", "ascorbato"], label: "E-300 Ácido ascórbico / ascorbatos", level: "info", group: "Antioxidantes", note: "Aditivo antioxidante de baja preocupación. No es una alerta relevante por sí solo.", related: "Sin alerta relevante en consumo habitual normal." },
+      { codes: ["e330"], names: ["acido citrico", "ácido cítrico"], label: "E-330 Ácido cítrico", level: "info", group: "Acidulantes", note: "Aditivo común de baja preocupación. No debe confundirse con una alerta sanitaria.", related: "Puede molestar a personas con sensibilidad digestiva, pero no es una alerta general." }
     ];
 
     let scanner = null;
@@ -477,6 +499,7 @@
       product.score = calculateScore(product);
       product.scoreLevel = product.score >= 75 ? "good" : product.score >= 50 ? "warn" : "bad";
       product.indicators = buildIndicators(product);
+      product.additives = analyzeAdditives(product);
       return product;
     }
 
@@ -532,6 +555,7 @@
         <div class="traffic">${product.indicators.map(indicator => trafficRow(indicator)).join("")}</div>
         ${product.ingredients ? `<div class="ingredients"><h3 class="section-title">Ingredientes</h3><p>${escapeHtml(product.ingredients)}</p></div>` : ""}
         ${product.allergens.length ? `<div class="ingredients"><h3 class="section-title">Alérgenos</h3><p>${escapeHtml(product.allergens.join(", "))}</p></div>` : ""}
+        ${renderAdditiveAnalysis(product)}
         <div class="divider"></div>
         <div class="actions"><button onclick='toggleFavorite(${escapeForInlineJson(product)})'>Añadir/quitar favorito</button><button class="secondary" onclick='openManualForm("${escapeJs(product.barcode)}", ${escapeForInlineJson(product)})'>Editar o guardar en mi base</button></div>`;
       productCard.classList.remove("hidden");
@@ -679,6 +703,57 @@
       const detected = product?.supermarkets?.[0]?.id || "";
       const options = [`<option value="">Sin asignar</option>`].concat(SUPERMARKETS.map(supermarket => `<option value="${escapeAttribute(supermarket.name)}" ${supermarket.id === detected ? "selected" : ""}>${escapeHtml(supermarket.name)}</option>`));
       return options.join("");
+    }
+
+    function analyzeAdditives(product) {
+      const text = normalizeText([product.ingredients, product.name].join(" "));
+      if (!text.trim()) return [];
+      return ADDITIVE_DB.filter(item => {
+        const codeMatch = item.codes.some(code => {
+          const compact = normalizeText(code);
+          const dashed = compact.replace("e", "e-");
+          return text.includes(compact) || text.includes(dashed);
+        });
+        const nameMatch = item.names.some(name => text.includes(normalizeText(name)));
+        return codeMatch || nameMatch;
+      });
+    }
+
+    function renderAdditiveAnalysis(product) {
+      const additives = product.additives || [];
+      if (!product.ingredients) return "";
+      if (!additives.length) {
+        return `<div class="ingredients"><h3 class="section-title">Análisis de aditivos</h3><p>No se han detectado conservantes o aditivos prioritarios de nuestra lista inicial. Esto no significa que el producto sea automáticamente saludable; revisa el conjunto de ingredientes y la calidad nutricional.</p></div>`;
+      }
+      const highest = getHighestAdditiveLevel(additives);
+      const title = highest === "high" ? "Precaución alta" : highest === "medium" ? "Precaución moderada" : highest === "low" ? "Baja preocupación" : "Información";
+      return `<div class="ingredients"><h3 class="section-title">Análisis de aditivos · ${title}</h3><p>Detección orientativa basada en ingredientes declarados. No es diagnóstico médico ni sustituye consejo profesional.</p><div class="additive-list">${additives.map(additive => additiveCard(additive)).join("")}</div></div>`;
+    }
+
+    function additiveCard(additive) {
+      const levelText = additive.level === "high" ? "Precaución alta" : additive.level === "medium" ? "Precaución moderada" : additive.level === "low" ? "Baja preocupación" : "Informativo";
+      return `<div class="additive-card"><strong>${escapeHtml(additive.label)}</strong><span class="additive-level ${additive.level}">${levelText}</span><p>${escapeHtml(additive.note)}</p><p><strong>Relacionado con:</strong> ${escapeHtml(additive.related)}</p></div>`;
+    }
+
+    function getHighestAdditiveLevel(additives) {
+      const order = { high: 4, medium: 3, low: 2, info: 1 };
+      return additives.reduce((highest, item) => order[item.level] > order[highest] ? item.level : highest, "info");
+    }
+
+    function normalizeText(value) {
+      const accentMap = { "á":"a", "à":"a", "ä":"a", "â":"a", "é":"e", "è":"e", "ë":"e", "ê":"e", "í":"i", "ì":"i", "ï":"i", "î":"i", "ó":"o", "ò":"o", "ö":"o", "ô":"o", "ú":"u", "ù":"u", "ü":"u", "û":"u", "ñ":"n" };
+      const raw = String(value || "").toLowerCase();
+      let output = "";
+      for (const char of raw) {
+        const c = accentMap[char] || char;
+        const code = c.charCodeAt(0);
+        const isLetter = code >= 97 && code <= 122;
+        const isNumber = code >= 48 && code <= 57;
+        output += isLetter || isNumber ? c : " ";
+      }
+      while (output.includes("  ")) output = output.replaceAll("  ", " ");
+      output = output.replaceAll("e 249", "e249").replaceAll("e 250", "e250").replaceAll("e 251", "e251").replaceAll("e 252", "e252").replaceAll("e 220", "e220").replaceAll("e 221", "e221").replaceAll("e 222", "e222").replaceAll("e 223", "e223").replaceAll("e 224", "e224").replaceAll("e 225", "e225").replaceAll("e 226", "e226").replaceAll("e 227", "e227").replaceAll("e 228", "e228").replaceAll("e 210", "e210").replaceAll("e 211", "e211").replaceAll("e 212", "e212").replaceAll("e 213", "e213").replaceAll("e 200", "e200").replaceAll("e 201", "e201").replaceAll("e 202", "e202").replaceAll("e 203", "e203").replaceAll("e 338", "e338").replaceAll("e 339", "e339").replaceAll("e 340", "e340").replaceAll("e 341", "e341").replaceAll("e 343", "e343").replaceAll("e 450", "e450").replaceAll("e 451", "e451").replaceAll("e 452", "e452").replaceAll("e 300", "e300").replaceAll("e 301", "e301").replaceAll("e 302", "e302").replaceAll("e 330", "e330");
+      return output.trim();
     }
 
     function renderServingsForProduct(product) {
