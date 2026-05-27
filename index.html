@@ -1192,7 +1192,7 @@
 
     function openFoodNameSearchForm() {
       setScreen("scan");
-      manualCard.innerHTML = `<h2 class="section-title">Buscar alimento sin escanear</h2><p class="subtle">Busca por nombre en tu base propia y en Open Food Facts. Después elige el alimento y escribe los gramos.</p><div class="manual-row"><input id="foodNameInput" placeholder="Ej. pollo, arroz cocido, plátano, huevo" autocomplete="off"><button onclick="searchFoodByName()">Buscar</button></div><div id="foodSearchStatus" class="status">Escribe un alimento para buscarlo.</div><div id="foodSearchResults" class="food-search-list"></div><div class="divider"></div><button class="secondary" onclick="openQuickFoodForm()">No aparece: meter valores manualmente</button>`;
+      manualCard.innerHTML = `<h2 class="section-title">Buscar alimento sin escanear</h2><p class="subtle">Busca por nombre en tu base propia y en Open Food Facts. Después elige el alimento y escribe los gramos.</p><div class="manual-row"><input id="foodNameInput" placeholder="Ej. pollo, arroz cocido, plátano, huevo" autocomplete="off"><button id="foodNameSearchBtn" type="button" onclick="searchFoodByName()">Buscar</button></div><div id="foodSearchStatus" class="status">Escribe un alimento para buscarlo.</div><div id="foodSearchResults" class="food-search-list"></div><div class="divider"></div><button class="secondary" onclick="openQuickFoodForm()">No aparece: meter valores manualmente</button>`;
       manualCard.classList.remove("hidden");
       manualCard.scrollIntoView({ behavior: "smooth", block: "start" });
       setTimeout(() => $("foodNameInput")?.focus(), 100);
@@ -1203,34 +1203,71 @@
       const query = $("foodNameInput")?.value.trim() || "";
       const resultsBox = $("foodSearchResults");
       const statusBox = $("foodSearchStatus");
+      const searchButton = $("foodNameSearchBtn");
       if (!query) { statusBox.textContent = "Escribe un alimento para buscarlo."; return; }
+
       resultsBox.innerHTML = "";
       statusBox.textContent = `Buscando “${query}”…`;
+      if (searchButton) { searchButton.disabled = true; searchButton.textContent = "Buscando"; }
 
       const localMatches = getLocalProducts().filter(product => normalizeText([product.name, product.brands].join(" ")).includes(normalizeText(query))).slice(0, 8);
       const results = [...localMatches.map(product => ({ ...product, source: product.source || "Base propia" }))];
 
       try {
-        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=12&fields=${OFF_FIELDS}`;
-        const response = await fetch(url, { headers: { "Accept": "application/json" } });
-        if (response.ok) {
-          const data = await response.json();
-          const apiProducts = Array.isArray(data.products) ? data.products : [];
-          apiProducts.forEach(apiProduct => {
-            const product = normalizeOpenFoodFactsProduct(apiProduct, apiProduct.code || `search-${Date.now()}`);
-            if (!results.some(item => item.barcode === product.barcode)) results.push(product);
-          });
-        }
+        const apiProducts = await fetchFoodSearchResults(query);
+        apiProducts.forEach(apiProduct => {
+          const product = normalizeOpenFoodFactsProduct(apiProduct, apiProduct.code || `search-${Date.now()}-${Math.random()}`);
+          if (!results.some(item => item.barcode === product.barcode)) results.push(product);
+        });
       } catch (error) {}
 
+      if (searchButton) { searchButton.disabled = false; searchButton.textContent = "Buscar"; }
+
       if (!results.length) {
-        statusBox.textContent = "No he encontrado resultados. Puedes meterlo manualmente.";
-        resultsBox.innerHTML = `<button class="secondary" onclick="openQuickFoodForm()">Meter valores manualmente</button>`;
+        statusBox.textContent = "No he encontrado resultados. Prueba con un nombre más simple, por ejemplo pollo, arroz, yogur o plátano.";
+        resultsBox.innerHTML = `<button type="button" class="secondary" onclick="openQuickFoodForm()">Meter valores manualmente</button>`;
         return;
       }
 
       statusBox.textContent = `${results.length} resultado(s). Elige el más parecido.`;
       resultsBox.innerHTML = results.slice(0, 14).map(product => foodSearchResultCard(product)).join("");
+    }
+
+    async function fetchFoodSearchResults(query) {
+      const endpoints = [
+        "https://world.openfoodfacts.org/cgi/search.pl",
+        "https://es.openfoodfacts.org/cgi/search.pl"
+      ];
+      const allProducts = [];
+      for (const endpoint of endpoints) {
+        for (let attempt = 1; attempt <= 2; attempt++) {
+          try {
+            const params = new URLSearchParams({
+              search_terms: query,
+              search_simple: "1",
+              action: "process",
+              json: "1",
+              page_size: "12",
+              fields: OFF_FIELDS
+            });
+            const response = await fetch(`${endpoint}?${params.toString()}`, { headers: { "Accept": "application/json" }, cache: "no-store" });
+            if (!response.ok) throw new Error("Respuesta no válida");
+            const data = await response.json();
+            const products = Array.isArray(data.products) ? data.products : [];
+            products.forEach(product => {
+              if (product && !allProducts.some(item => item.code && product.code && item.code === product.code)) allProducts.push(product);
+            });
+            if (products.length) return allProducts;
+          } catch (error) {
+            await wait(450 * attempt);
+          }
+        }
+      }
+      return allProducts;
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     function foodSearchResultCard(product) {
