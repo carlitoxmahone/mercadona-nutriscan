@@ -308,6 +308,7 @@
       <div class="actions">
         <button id="startBtn">📷 Escanear alimento</button>
         <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
+        <button class="secondary" type="button" onclick="openQuickFoodForm()">＋ Añadir sin escanear</button>
       </div>
       <div class="manual-row">
         <input id="barcodeInput" inputmode="numeric" placeholder="Código de barras" />
@@ -790,6 +791,7 @@
             <div><h3>${escapeHtml(getMealName(selectedMeal))}</h3><span>${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</span></div>
             <button type="button" class="secondary tiny" onclick="clearSelectedMeal()">Vaciar</button>
           </div>
+          <div class="actions" style="margin:10px 0 4px"><button type="button" onclick="openQuickFoodForm()">＋ Añadir alimento a ${escapeHtml(getMealName(selectedMeal))}</button><button type="button" class="secondary" onclick='setScreen("scan")'>Escanear alimento</button></div>
           <div class="meal-list">${selectedItems.length ? selectedItems.map(item => mealItemRow(item)).join("") : `<p class="notice">Todavía no has añadido alimentos a esta comida.</p>`}</div>
         </div>
 
@@ -803,8 +805,6 @@
       selectedMeal = mealId;
       renderMeals();
       if (currentProduct && activeScreen === "scan") renderProduct(currentProduct);
-      const detail = $("mealDetailCard");
-      if (detail && activeScreen === "home") detail.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function changeSelectedDate(offsetDays) {
@@ -1183,6 +1183,85 @@
     function renderNotFound(barcode) {
       productCard.innerHTML = `<h2 class="product-title">Producto no encontrado</h2><p class="subtle">Código: ${escapeHtml(barcode)}</p><div class="ingredients"><p>No aparece en Open Food Facts o no se ha podido consultar. Puedes guardarlo en tu propia base para que la próxima vez salga al instante.</p></div><button style="margin-top:14px" onclick='openManualForm("${escapeJs(barcode)}")'>Añadir producto manualmente</button>`;
       productCard.classList.remove("hidden");
+    }
+
+    function openQuickFoodForm() {
+      manualCard.innerHTML = `<h2 class="section-title">Añadir alimento sin escanear</h2><p class="subtle">Introduce los valores por 100 g/ml y la cantidad real que vas a comer. Se añadirá a ${escapeHtml(getMealName(selectedMeal))}.</p><div class="form-grid"><div class="wide"><label>Nombre del alimento</label><input id="quickName" placeholder="Ej. Pechuga de pollo, arroz cocido, plátano"></div><div class="wide"><label>Marca o nota opcional</label><input id="quickBrands" placeholder="Ej. casero, Hacendado, Consum..."></div>${numberInput("quickAmount", "Cantidad comida g/ml", 100)}${numberInput("quickKcal", "Kcal por 100 g/ml", "")}${numberInput("quickProteins", "Proteínas por 100 g/ml", "")}${numberInput("quickCarbs", "Hidratos por 100 g/ml", "")}${numberInput("quickSugars", "Azúcares por 100 g/ml", "")}${numberInput("quickFat", "Grasas por 100 g/ml", "")}${numberInput("quickSaturatedFat", "Saturadas por 100 g/ml", "")}${numberInput("quickFiber", "Fibra por 100 g/ml", "")}${numberInput("quickSalt", "Sal por 100 g/ml", "")}</div><div id="quickPreview" class="scaled-preview" style="margin-top:12px"></div><div class="actions" style="margin-top:14px"><button onclick="addQuickFoodToMeal()">Añadir a ${escapeHtml(getMealName(selectedMeal))}</button><button class="secondary" onclick="saveQuickFoodAsProduct()">Guardar en mi base</button><button class="secondary" onclick="manualCard.classList.add('hidden')">Cancelar</button></div><p class="notice">Útil para alimentos sin código: pollo, arroz, huevos, fruta, aceite, patata, verduras o comidas caseras.</p>`;
+      manualCard.classList.remove("hidden");
+      setScreen("scan");
+      manualCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      ["quickAmount", "quickKcal", "quickProteins", "quickCarbs", "quickFat"].forEach(id => $(id)?.addEventListener("input", updateQuickPreview));
+      updateQuickPreview();
+    }
+
+    function getQuickFoodProduct() {
+      const name = $("quickName")?.value.trim() || "";
+      if (!name) return null;
+      return enrichProduct({
+        barcode: `manual-${Date.now()}`,
+        name,
+        brands: $("quickBrands")?.value.trim() || "Manual",
+        source: "Añadido manual",
+        nutritionGrade: "",
+        ingredients: "",
+        allergens: [],
+        storesTags: [],
+        stores: "",
+        nutrition: {
+          kcal: inputNumber("quickKcal"),
+          proteins: inputNumber("quickProteins"),
+          carbs: inputNumber("quickCarbs"),
+          sugars: inputNumber("quickSugars"),
+          fat: inputNumber("quickFat"),
+          saturatedFat: inputNumber("quickSaturatedFat"),
+          fiber: inputNumber("quickFiber"),
+          salt: inputNumber("quickSalt")
+        }
+      });
+    }
+
+    function updateQuickPreview() {
+      const amount = inputNumber("quickAmount") || 0;
+      const kcal = inputNumber("quickKcal") || 0;
+      const proteins = inputNumber("quickProteins") || 0;
+      const carbs = inputNumber("quickCarbs") || 0;
+      const fat = inputNumber("quickFat") || 0;
+      const factor = amount / 100;
+      const preview = $("quickPreview");
+      if (!preview) return;
+      preview.textContent = amount > 0 ? `Para ${formatPlainAmount(amount)} g/ml: ${formatAmount(kcal * factor, "kcal")}, proteína ${formatAmount(proteins * factor, "g")}, hidratos ${formatAmount(carbs * factor, "g")}, grasa ${formatAmount(fat * factor, "g")}.` : "Introduce una cantidad para ver el cálculo.";
+    }
+
+    function addQuickFoodToMeal() {
+      const product = getQuickFoodProduct();
+      const amount = inputNumber("quickAmount");
+      if (!product || !amount || amount <= 0) { showToast("Introduce nombre y cantidad válida"); return; }
+      const meals = getMealsData();
+      meals[selectedMeal].push({
+        id: String(Date.now()) + String(Math.random()).slice(2),
+        barcode: product.barcode,
+        name: product.name,
+        brands: product.brands,
+        amount,
+        nutrition: product.nutrition,
+        addedAt: new Date().toISOString()
+      });
+      saveMealsData(meals);
+      renderMeals();
+      manualCard.classList.add("hidden");
+      setScreen("home");
+      showToast(`${product.name} añadido a ${getMealName(selectedMeal)}`);
+    }
+
+    function saveQuickFoodAsProduct() {
+      const product = getQuickFoodProduct();
+      if (!product) { showToast("Introduce un nombre de alimento"); return; }
+      const products = getLocalProducts().filter(item => item.name.toLowerCase() !== product.name.toLowerCase());
+      products.unshift(product);
+      localStorage.setItem(LOCAL_PRODUCTS_KEY, JSON.stringify(products));
+      saveToHistory(product);
+      renderHistory();
+      showToast("Alimento guardado en tu base propia");
     }
 
     function openManualForm(barcode = lastBarcode, product = null) {
