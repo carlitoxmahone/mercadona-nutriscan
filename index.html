@@ -131,6 +131,11 @@
     .favorite-grid { display: grid; gap: 8px; margin-top: 10px; }
     .favorite-btn { width: 100%; min-height: 0; text-align: left; background: rgba(255,255,255,.66); color: var(--text); box-shadow: none; border: 1px solid rgba(7,31,29,.065); padding: 12px; border-radius: 18px; }
     .favorite-btn span { display: block; color: var(--muted); font-size: 12px; margin-top: 3px; font-weight: 500; }
+    .food-search-list { display:grid; gap:10px; margin-top:12px; }
+    .food-search-item { padding:12px; border-radius:18px; background:rgba(255,255,255,.72); border:1px solid rgba(7,31,29,.065); }
+    .food-search-item strong { display:block; font-size:15px; letter-spacing:-.02em; }
+    .food-search-item span { display:block; color:var(--muted); font-size:12px; margin-top:4px; line-height:1.35; }
+    .food-search-item .actions { margin-top:10px; }
     .day-history { display: grid; gap: 8px; margin-top: 10px; }
     .day-card { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 12px; border-radius: 18px; background: rgba(255,255,255,.66); border: 1px solid rgba(7,31,29,.065); }
     .day-card strong { display:block; font-size: 14px; }
@@ -308,7 +313,7 @@
       <div class="actions">
         <button id="startBtn">📷 Escanear alimento</button>
         <button id="stopBtn" class="secondary" disabled>Detener cámara</button>
-        <button class="secondary" type="button" onclick="openQuickFoodForm()">＋ Añadir sin escanear</button>
+        <button class="secondary" type="button" onclick="openFoodNameSearchForm()">＋ Buscar sin escanear</button>
       </div>
       <div class="manual-row">
         <input id="barcodeInput" inputmode="numeric" placeholder="Código de barras" />
@@ -791,7 +796,7 @@
             <div><h3>${escapeHtml(getMealName(selectedMeal))}</h3><span>${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</span></div>
             <button type="button" class="secondary tiny" onclick="clearSelectedMeal()">Vaciar</button>
           </div>
-          <div class="actions" style="margin:10px 0 4px"><button type="button" onclick="openQuickFoodForm()">＋ Añadir alimento a ${escapeHtml(getMealName(selectedMeal))}</button><button type="button" class="secondary" onclick='setScreen("scan")'>Escanear alimento</button></div>
+          <div class="actions" style="margin:10px 0 4px"><button type="button" onclick="openFoodNameSearchForm()">＋ Buscar alimento para ${escapeHtml(getMealName(selectedMeal))}</button><button type="button" class="secondary" onclick='setScreen("scan")'>Escanear alimento</button></div>
           <div class="meal-list">${selectedItems.length ? selectedItems.map(item => mealItemRow(item)).join("") : `<p class="notice">Todavía no has añadido alimentos a esta comida.</p>`}</div>
         </div>
 
@@ -1183,6 +1188,64 @@
     function renderNotFound(barcode) {
       productCard.innerHTML = `<h2 class="product-title">Producto no encontrado</h2><p class="subtle">Código: ${escapeHtml(barcode)}</p><div class="ingredients"><p>No aparece en Open Food Facts o no se ha podido consultar. Puedes guardarlo en tu propia base para que la próxima vez salga al instante.</p></div><button style="margin-top:14px" onclick='openManualForm("${escapeJs(barcode)}")'>Añadir producto manualmente</button>`;
       productCard.classList.remove("hidden");
+    }
+
+    function openFoodNameSearchForm() {
+      setScreen("scan");
+      manualCard.innerHTML = `<h2 class="section-title">Buscar alimento sin escanear</h2><p class="subtle">Busca por nombre en tu base propia y en Open Food Facts. Después elige el alimento y escribe los gramos.</p><div class="manual-row"><input id="foodNameInput" placeholder="Ej. pollo, arroz cocido, plátano, huevo" autocomplete="off"><button onclick="searchFoodByName()">Buscar</button></div><div id="foodSearchStatus" class="status">Escribe un alimento para buscarlo.</div><div id="foodSearchResults" class="food-search-list"></div><div class="divider"></div><button class="secondary" onclick="openQuickFoodForm()">No aparece: meter valores manualmente</button>`;
+      manualCard.classList.remove("hidden");
+      manualCard.scrollIntoView({ behavior: "smooth", block: "start" });
+      setTimeout(() => $("foodNameInput")?.focus(), 100);
+      $("foodNameInput")?.addEventListener("keydown", event => { if (event.key === "Enter") searchFoodByName(); });
+    }
+
+    async function searchFoodByName() {
+      const query = $("foodNameInput")?.value.trim() || "";
+      const resultsBox = $("foodSearchResults");
+      const statusBox = $("foodSearchStatus");
+      if (!query) { statusBox.textContent = "Escribe un alimento para buscarlo."; return; }
+      resultsBox.innerHTML = "";
+      statusBox.textContent = `Buscando “${query}”…`;
+
+      const localMatches = getLocalProducts().filter(product => normalizeText([product.name, product.brands].join(" ")).includes(normalizeText(query))).slice(0, 8);
+      const results = [...localMatches.map(product => ({ ...product, source: product.source || "Base propia" }))];
+
+      try {
+        const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=12&fields=${OFF_FIELDS}`;
+        const response = await fetch(url, { headers: { "Accept": "application/json" } });
+        if (response.ok) {
+          const data = await response.json();
+          const apiProducts = Array.isArray(data.products) ? data.products : [];
+          apiProducts.forEach(apiProduct => {
+            const product = normalizeOpenFoodFactsProduct(apiProduct, apiProduct.code || `search-${Date.now()}`);
+            if (!results.some(item => item.barcode === product.barcode)) results.push(product);
+          });
+        }
+      } catch (error) {}
+
+      if (!results.length) {
+        statusBox.textContent = "No he encontrado resultados. Puedes meterlo manualmente.";
+        resultsBox.innerHTML = `<button class="secondary" onclick="openQuickFoodForm()">Meter valores manualmente</button>`;
+        return;
+      }
+
+      statusBox.textContent = `${results.length} resultado(s). Elige el más parecido.`;
+      resultsBox.innerHTML = results.slice(0, 14).map(product => foodSearchResultCard(product)).join("");
+    }
+
+    function foodSearchResultCard(product) {
+      const n = product.nutrition || {};
+      return `<div class="food-search-item"><strong>${escapeHtml(product.name)}</strong><span>${escapeHtml(product.brands || "Marca no disponible")} · ${escapeHtml(product.source || "Open Food Facts")}</span><span>${formatValue(n.kcal, "kcal")} · proteína ${formatValue(n.proteins, "g")} · hidratos ${formatValue(n.carbs, "g")} · grasa ${formatValue(n.fat, "g")} por 100 g/ml</span><div class="actions"><button onclick='useSearchedProduct(${escapeForInlineJson(product)})'>Usar alimento</button><button class="secondary" onclick='openManualForm("${escapeJs(product.barcode)}", ${escapeForInlineJson(product)})'>Editar datos</button></div></div>`;
+    }
+
+    function useSearchedProduct(product) {
+      currentProduct = enrichProduct(product);
+      manualCard.classList.add("hidden");
+      renderProduct(currentProduct);
+      saveToHistory(currentProduct);
+      renderHistory();
+      setScreen("scan");
+      showToast("Alimento cargado");
     }
 
     function openQuickFoodForm() {
