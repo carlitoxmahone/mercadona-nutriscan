@@ -90,6 +90,12 @@
     .today-card { position: relative; overflow: hidden; padding: 18px; border-radius: 28px; background: linear-gradient(135deg, rgba(7,31,29,.96), rgba(8,127,115,.93)); color: white; box-shadow: var(--shadow); }
     .today-card:after { content:""; position:absolute; right:-70px; top:-70px; width:190px; height:190px; border-radius:999px; background:rgba(255,255,255,.12); }
     .today-card h2 { position:relative; margin:0 0 6px; font-size:28px; letter-spacing:-.04em; }
+    .day-nav { position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .day-nav button { min-height:38px; width:38px; padding:0; border-radius:14px; background:rgba(255,255,255,.16); color:white; box-shadow:none; border:1px solid rgba(255,255,255,.18); }
+    .day-nav-title { text-align:center; flex:1; }
+    .day-nav-title strong { display:block; font-size:18px; letter-spacing:-.02em; }
+    .day-nav-title span { display:block; font-size:12px; color:rgba(255,255,255,.72); margin-top:2px; }
+    .today-link { position:relative; margin-top:10px; min-height:36px; padding:8px 12px; border-radius:14px; background:rgba(255,255,255,.14); color:white; box-shadow:none; border:1px solid rgba(255,255,255,.16); font-size:12px; }
     .today-card p { position:relative; margin:0; color:rgba(255,255,255,.76); font-size:14px; }
     .today-kcal { position:relative; margin-top:16px; display:flex; align-items:end; justify-content:space-between; gap:14px; }
     .today-kcal strong { font-size:42px; line-height:.9; letter-spacing:-.06em; }
@@ -341,6 +347,7 @@
     const DAY_HISTORY_KEY = "nutriscan_day_history_v6";
     const SERVINGS_KEY = "nutriscan_servings_v6";
     const HEALTH_KEY = "nutriscan_health_v8";
+    const MEALS_BY_DATE_KEY = "nutriscan_meals_by_date_v9";
     const MEALS = [
       { id: "breakfast", name: "Desayuno", icon: "☕" },
       { id: "lunch", name: "Comida", icon: "🍽️" },
@@ -381,6 +388,7 @@
     let currentProduct = null;
     let activeScreen = "home";
     let recipeFilter = "todas";
+    let selectedDate = getTodayKey();
 
     const $ = id => document.getElementById(id);
     const startBtn = $("startBtn");
@@ -743,10 +751,15 @@
       const goals = getGoals();
       const kcalRemaining = goals.kcal - dayTotals.kcal;
       const kcalText = kcalRemaining >= 0 ? `Te quedan ${formatAmount(kcalRemaining, "kcal")}` : `Te has pasado ${formatAmount(Math.abs(kcalRemaining), "kcal")}`;
+      const isToday = selectedDate === getTodayKey();
 
       mealsCard.innerHTML = `
         <div class="today-card">
-          <h2>Hoy</h2>
+          <div class="day-nav">
+            <button onclick="changeSelectedDate(-1)">‹</button>
+            <div class="day-nav-title"><strong>${escapeHtml(isToday ? "Hoy" : formatDateLabel(selectedDate))}</strong><span>${escapeHtml(getDayName(selectedDate))}</span></div>
+            <button onclick="changeSelectedDate(1)">›</button>
+          </div>
           <p>${escapeHtml(kcalText)}</p>
           <div class="today-kcal">
             <div><strong>${formatAmount(dayTotals.kcal, "kcal").replace(" kcal", "")}</strong><span>de ${formatAmount(goals.kcal, "kcal")}</span></div>
@@ -757,12 +770,13 @@
             <div class="macro-pill"><small>Hidratos</small><strong>${formatAmount(dayTotals.carbs, "g")}</strong></div>
             <div class="macro-pill"><small>Grasas</small><strong>${formatAmount(dayTotals.fat, "g")}</strong></div>
           </div>
+          ${!isToday ? `<button class="today-link" onclick="goToToday()">Volver a hoy</button>` : ""}
         </div>
 
         <div class="tabs">
           ${MEALS.map(meal => {
             const total = calculateMealTotals(meals[meal.id] || []);
-            return `<button class="meal-tab ${meal.id === selectedMeal ? "active" : ""}" onclick='selectMeal("${meal.id}")'><span class="meal-icon">${meal.icon}</span><strong>${meal.name}</strong><span>${formatAmount(total.kcal, "kcal")} · ${formatAmount(total.proteins, "g")} prot.</span></button>`;
+            return `<button type="button" class="meal-tab ${meal.id === selectedMeal ? "active" : ""}" onclick='selectMeal("${meal.id}")'><span class="meal-icon">${meal.icon}</span><strong>${meal.name}</strong><span>${formatAmount(total.kcal, "kcal")} · ${formatAmount(total.proteins, "g")} prot.</span></button>`;
           }).join("")}
         </div>
 
@@ -773,6 +787,26 @@
         <p class="subtle">Total: ${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</p>
         <div class="meal-list">${selectedItems.length ? selectedItems.map(item => mealItemRow(item)).join("") : `<p class="notice">Todavía no has añadido alimentos a esta comida.</p>`}</div>
         <div class="actions" style="margin-top:14px"><button onclick="saveCurrentDay()">Guardar día</button><button class="secondary" onclick="saveAndStartNewDay()">Guardar y nuevo día</button><button class="secondary" onclick="clearSelectedMeal()">Vaciar ${escapeHtml(getMealName(selectedMeal))}</button><button class="danger" onclick="clearAllMeals()">Borrar todo el día</button></div>${renderDayHistoryPanel()}`;
+    }
+
+    function changeSelectedDate(offsetDays) {
+      const date = parseDateKey(selectedDate);
+      date.setDate(date.getDate() + offsetDays);
+      selectedDate = toDateKey(date);
+      selectedMeal = selectedMeal || "breakfast";
+      renderMeals();
+      if (activeScreen === "home") setScreen("home");
+    }
+
+    function goToToday() {
+      selectedDate = getTodayKey();
+      renderMeals();
+      if (activeScreen === "home") setScreen("home");
+    }
+
+    function getDayName(dateKey) {
+      const date = parseDateKey(dateKey);
+      return date.toLocaleDateString("es-ES", { weekday: "long", day: "2-digit", month: "long" });
     }
 
     function renderGoalsPanel(dayTotals) {
@@ -954,15 +988,16 @@
       if (!allItems.length) { showToast("No hay alimentos para guardar"); return; }
       const totals = calculateMealTotals(allItems);
       const history = getDayHistory();
-      const today = getTodayKey();
-      history[today] = { date: today, meals, totals, savedAt: new Date().toISOString() };
+      history[selectedDate] = { date: selectedDate, meals, totals, savedAt: new Date().toISOString() };
       saveDayHistory(history);
+      saveMealsData(meals);
       renderMeals();
       showToast("Día guardado");
     }
 
     function saveAndStartNewDay() {
       saveCurrentDay();
+      selectedDate = getTodayKey();
       saveMealsData(createEmptyMeals());
       renderMeals();
       showToast("Nuevo día iniciado");
@@ -977,8 +1012,10 @@
     function loadSavedDay(dateKey) {
       const day = getDayHistory()[dateKey];
       if (!day) return;
+      selectedDate = dateKey;
       saveMealsData(day.meals);
       renderMeals();
+      if (activeScreen === "home") setScreen("home");
       showToast(`Día cargado: ${formatDateLabel(dateKey)}`);
     }
 
@@ -999,11 +1036,19 @@
     }
 
     function getTodayKey() {
-      const now = new Date();
-      const year = now.getFullYear();
-      const month = String(now.getMonth() + 1).padStart(2, "0");
-      const day = String(now.getDate()).padStart(2, "0");
+      return toDateKey(new Date());
+    }
+
+    function toDateKey(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
       return `${year}-${month}-${day}`;
+    }
+
+    function parseDateKey(dateKey) {
+      const [year, month, day] = String(dateKey).split("-").map(Number);
+      return new Date(year, (month || 1) - 1, day || 1);
     }
 
     function formatDateLabel(dateKey) {
@@ -1042,15 +1087,27 @@
 
     function getMealsData() {
       try {
-        const parsed = JSON.parse(localStorage.getItem(MEALS_KEY) || "null");
-        return normalizeMealsData(parsed);
+        const byDate = JSON.parse(localStorage.getItem(MEALS_BY_DATE_KEY) || "{}");
+        if (byDate[selectedDate]) return normalizeMealsData(byDate[selectedDate]);
+        if (selectedDate === getTodayKey()) {
+          const legacy = JSON.parse(localStorage.getItem(MEALS_KEY) || "null");
+          return normalizeMealsData(legacy);
+        }
+        return createEmptyMeals();
       } catch (error) {
         return createEmptyMeals();
       }
     }
 
     function saveMealsData(meals) {
-      localStorage.setItem(MEALS_KEY, JSON.stringify(normalizeMealsData(meals)));
+      const byDate = getMealsByDate();
+      byDate[selectedDate] = normalizeMealsData(meals);
+      localStorage.setItem(MEALS_BY_DATE_KEY, JSON.stringify(byDate));
+      if (selectedDate === getTodayKey()) localStorage.setItem(MEALS_KEY, JSON.stringify(normalizeMealsData(meals)));
+    }
+
+    function getMealsByDate() {
+      try { return JSON.parse(localStorage.getItem(MEALS_BY_DATE_KEY) || "{}"); } catch (error) { return {}; }
     }
 
     function normalizeMealsData(data) {
