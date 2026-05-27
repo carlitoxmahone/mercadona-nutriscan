@@ -35,10 +35,10 @@
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
       background: radial-gradient(circle at 18% 0%, rgba(18,184,166,.32), transparent 32%), radial-gradient(circle at 86% 6%, rgba(8,127,115,.22), transparent 28%), linear-gradient(180deg, #e9f6f3 0%, #f8faf9 42%, #edf4f2 100%);
       color: var(--text);
-      padding-bottom: calc(22px + env(safe-area-inset-bottom));
+      padding-bottom: calc(118px + env(safe-area-inset-bottom));
     }
 
-    .app { width: min(920px, 100%); margin: 0 auto; padding: 18px; }
+    .app { width: min(920px, 100%); margin: 0 auto; padding: 18px 18px calc(118px + env(safe-area-inset-bottom)); }
     .hero {
       position: relative;
       overflow: hidden;
@@ -88,19 +88,19 @@
     .notice { font-size: 12px; margin: 12px 2px 0; }
 
     .today-card { position: relative; overflow: hidden; padding: 18px; border-radius: 28px; background: linear-gradient(135deg, rgba(7,31,29,.96), rgba(8,127,115,.93)); color: white; box-shadow: var(--shadow); }
-    .today-card:after { content:""; position:absolute; right:-70px; top:-70px; width:190px; height:190px; border-radius:999px; background:rgba(255,255,255,.12); }
+    .today-card:after { content:""; position:absolute; right:-70px; top:-70px; width:190px; height:190px; border-radius:999px; background:rgba(255,255,255,.12); pointer-events:none; z-index:0; }
     .today-card h2 { position:relative; margin:0 0 6px; font-size:28px; letter-spacing:-.04em; }
-    .day-nav { position:relative; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
+    .day-nav { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px; }
     .day-nav button { min-height:38px; width:38px; padding:0; border-radius:14px; background:rgba(255,255,255,.16); color:white; box-shadow:none; border:1px solid rgba(255,255,255,.18); }
     .day-nav-title { text-align:center; flex:1; }
     .day-nav-title strong { display:block; font-size:18px; letter-spacing:-.02em; }
     .day-nav-title span { display:block; font-size:12px; color:rgba(255,255,255,.72); margin-top:2px; }
-    .today-link { position:relative; margin-top:10px; min-height:36px; padding:8px 12px; border-radius:14px; background:rgba(255,255,255,.14); color:white; box-shadow:none; border:1px solid rgba(255,255,255,.16); font-size:12px; }
-    .today-card p { position:relative; margin:0; color:rgba(255,255,255,.76); font-size:14px; }
-    .today-kcal { position:relative; margin-top:16px; display:flex; align-items:end; justify-content:space-between; gap:14px; }
+    .today-link { position:relative; z-index:2; margin-top:10px; min-height:36px; padding:8px 12px; border-radius:14px; background:rgba(255,255,255,.14); color:white; box-shadow:none; border:1px solid rgba(255,255,255,.16); font-size:12px; }
+    .today-card p { position:relative; z-index:1; margin:0; color:rgba(255,255,255,.76); font-size:14px; }
+    .today-kcal { position:relative; z-index:1; margin-top:16px; display:flex; align-items:end; justify-content:space-between; gap:14px; }
     .today-kcal strong { font-size:42px; line-height:.9; letter-spacing:-.06em; }
     .today-kcal span { display:block; margin-top:4px; color:rgba(255,255,255,.72); font-size:13px; }
-    .macro-strip { position:relative; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
+    .macro-strip { position:relative; z-index:1; display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:16px; }
     .macro-pill { padding:10px; border-radius:17px; background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.14); backdrop-filter:blur(10px); }
     .macro-pill small { display:block; color:rgba(255,255,255,.68); font-size:11px; font-weight:800; }
     .macro-pill strong { display:block; margin-top:3px; font-size:15px; }
@@ -140,7 +140,11 @@
     .serving-chip span { display:block; color:var(--muted); font-size:11px; margin-top:2px; font-weight:500; }
     .serving-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:10px; }
 
-    .meal-list { margin-top: 14px; }
+    .meal-detail-card { margin-top: 14px; padding: 14px; border-radius: 24px; background: rgba(255,255,255,.68); border: 1px solid rgba(7,31,29,.065); }
+    .meal-detail-head { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; margin-bottom:8px; }
+    .meal-detail-head h3 { margin:0; font-size:20px; letter-spacing:-.03em; }
+    .meal-detail-head span { color:var(--muted); font-size:12px; display:block; margin-top:3px; }
+    .meal-list { margin-top: 10px; }
     .meal-item { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 12px 0; border-top: 1px solid var(--line); }
     .meal-item:first-child { border-top: 0; }
     .meal-item strong { display: block; font-size: 15px; }
@@ -289,7 +293,7 @@
     <section id="heroCard" class="hero">
       <div class="hero-top">
         <div class="logo">▦</div>
-        <div class="version-pill">Revisado v8</div>
+        <div class="version-pill">Pulido v8.1</div>
       </div>
       <h1>Carlitox NutriScan Supermercados</h1>
       <p>Escanea alimentos, controla macros, consulta recetas fit y revisa tu salud corporal desde una app más ordenada.</p>
@@ -448,7 +452,7 @@
       if (screen === "scan") { show("scanCard"); if (currentProduct) show("productCard"); $("navScan")?.classList.add("active"); }
       if (screen === "recipes") { renderRecipes(); show("recipesCard"); $("navRecipes")?.classList.add("active"); }
       if (screen === "health") { renderHealth(); show("healthCard"); $("navHealth")?.classList.add("active"); }
-      if (screen === "settings") { renderSettings(); renderHistory(); show("settingsCard"); show("historyCard"); }
+      if (screen === "settings") { renderSettings(); const hasHistory = renderHistory(); show("settingsCard"); if (hasHistory) show("historyCard"); }
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -710,6 +714,7 @@
       if (!Number.isFinite(amount) || amount <= 0) {
         $("scaledPreview").textContent = "Introduce el peso que has comido.";
         if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Cantidad</span><strong>—</strong>`;
+        if ($("calculatedMacros")) $("calculatedMacros").innerHTML = "";
         return;
       }
       if ($("totalAmountPreview")) $("totalAmountPreview").innerHTML = `<span>Cantidad</span><strong>${formatPlainAmount(amount)} g/ml</strong>`;
@@ -756,37 +761,50 @@
       mealsCard.innerHTML = `
         <div class="today-card">
           <div class="day-nav">
-            <button onclick="changeSelectedDate(-1)">‹</button>
+            <button type="button" onclick="changeSelectedDate(-1)">‹</button>
             <div class="day-nav-title"><strong>${escapeHtml(isToday ? "Hoy" : formatDateLabel(selectedDate))}</strong><span>${escapeHtml(getDayName(selectedDate))}</span></div>
-            <button onclick="changeSelectedDate(1)">›</button>
+            <button type="button" onclick="changeSelectedDate(1)">›</button>
           </div>
           <p>${escapeHtml(kcalText)}</p>
           <div class="today-kcal">
             <div><strong>${formatAmount(dayTotals.kcal, "kcal").replace(" kcal", "")}</strong><span>de ${formatAmount(goals.kcal, "kcal")}</span></div>
-            <button class="tiny secondary" onclick="saveCurrentDay()">Guardar</button>
+            <button type="button" class="tiny secondary" onclick="saveCurrentDay()">Guardar</button>
           </div>
           <div class="macro-strip">
             <div class="macro-pill"><small>Proteína</small><strong>${formatAmount(dayTotals.proteins, "g")}</strong></div>
             <div class="macro-pill"><small>Hidratos</small><strong>${formatAmount(dayTotals.carbs, "g")}</strong></div>
             <div class="macro-pill"><small>Grasas</small><strong>${formatAmount(dayTotals.fat, "g")}</strong></div>
           </div>
-          ${!isToday ? `<button class="today-link" onclick="goToToday()">Volver a hoy</button>` : ""}
+          ${!isToday ? `<button type="button" class="today-link" onclick="goToToday()">Volver a hoy</button>` : ""}
         </div>
 
         <div class="tabs">
           ${MEALS.map(meal => {
             const total = calculateMealTotals(meals[meal.id] || []);
-            return `<button type="button" class="meal-tab ${meal.id === selectedMeal ? "active" : ""}" onclick='selectMeal("${meal.id}")'><span class="meal-icon">${meal.icon}</span><strong>${meal.name}</strong><span>${formatAmount(total.kcal, "kcal")} · ${formatAmount(total.proteins, "g")} prot.</span></button>`;
+            return `<button type="button" class="meal-tab ${meal.id === selectedMeal ? "active" : ""}" onclick="selectMeal('${meal.id}')"><span class="meal-icon">${meal.icon}</span><strong>${meal.name}</strong><span>${formatAmount(total.kcal, "kcal")} · ${formatAmount(total.proteins, "g")} prot.</span></button>`;
           }).join("")}
+        </div>
+
+        <div id="mealDetailCard" class="meal-detail-card">
+          <div class="meal-detail-head">
+            <div><h3>${escapeHtml(getMealName(selectedMeal))}</h3><span>${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</span></div>
+            <button type="button" class="secondary tiny" onclick="clearSelectedMeal()">Vaciar</button>
+          </div>
+          <div class="meal-list">${selectedItems.length ? selectedItems.map(item => mealItemRow(item)).join("") : `<p class="notice">Todavía no has añadido alimentos a esta comida.</p>`}</div>
         </div>
 
         ${renderGoalsPanel(dayTotals)}
         ${renderFavoritesPanel()}
-        <div class="divider"></div>
-        <h3 class="section-title">${escapeHtml(getMealName(selectedMeal))}</h3>
-        <p class="subtle">Total: ${formatAmount(mealTotals.kcal, "kcal")} · proteína ${formatAmount(mealTotals.proteins, "g")} · hidratos ${formatAmount(mealTotals.carbs, "g")} · grasa ${formatAmount(mealTotals.fat, "g")}</p>
-        <div class="meal-list">${selectedItems.length ? selectedItems.map(item => mealItemRow(item)).join("") : `<p class="notice">Todavía no has añadido alimentos a esta comida.</p>`}</div>
-        <div class="actions" style="margin-top:14px"><button onclick="saveCurrentDay()">Guardar día</button><button class="secondary" onclick="saveAndStartNewDay()">Guardar y nuevo día</button><button class="secondary" onclick="clearSelectedMeal()">Vaciar ${escapeHtml(getMealName(selectedMeal))}</button><button class="danger" onclick="clearAllMeals()">Borrar todo el día</button></div>${renderDayHistoryPanel()}`;
+        <div class="actions" style="margin-top:14px"><button type="button" onclick="saveCurrentDay()">Guardar día</button><button type="button" class="secondary" onclick="saveAndStartNewDay()">Guardar y nuevo día</button><button type="button" class="danger" onclick="clearAllMeals()">Borrar todo el día</button></div>${renderDayHistoryPanel()}`;
+    }
+
+    function selectMeal(mealId) {
+      if (!MEALS.some(meal => meal.id === mealId)) return;
+      selectedMeal = mealId;
+      renderMeals();
+      if (currentProduct && activeScreen === "scan") renderProduct(currentProduct);
+      const detail = $("mealDetailCard");
+      if (detail && activeScreen === "home") detail.scrollIntoView({ behavior: "smooth", block: "start" });
     }
 
     function changeSelectedDate(offsetDays) {
@@ -985,7 +1003,7 @@
     function saveCurrentDay() {
       const meals = getMealsData();
       const allItems = Object.values(meals).flat();
-      if (!allItems.length) { showToast("No hay alimentos para guardar"); return; }
+      if (!allItems.length) { showToast("No hay alimentos para guardar"); return false; }
       const totals = calculateMealTotals(allItems);
       const history = getDayHistory();
       history[selectedDate] = { date: selectedDate, meals, totals, savedAt: new Date().toISOString() };
@@ -993,14 +1011,15 @@
       saveMealsData(meals);
       renderMeals();
       showToast("Día guardado");
+      return true;
     }
 
     function saveAndStartNewDay() {
-      saveCurrentDay();
+      const hadData = saveCurrentDay();
       selectedDate = getTodayKey();
-      saveMealsData(createEmptyMeals());
+      if (hadData) saveMealsData(createEmptyMeals());
       renderMeals();
-      showToast("Nuevo día iniciado");
+      showToast(hadData ? "Nuevo día iniciado" : "No había alimentos para guardar");
     }
 
     function renderDayHistoryPanel() {
@@ -1487,9 +1506,14 @@
     function renderHistory() {
       const history = getHistory();
       const localCount = getLocalProducts().length;
-      if (!history.length && localCount === 0) { historyCard.classList.add("hidden"); return; }
+      if (!history.length && localCount === 0) {
+        historyCard.innerHTML = "";
+        historyCard.classList.add("hidden");
+        return false;
+      }
       historyCard.innerHTML = `<h2 class="section-title">Historial</h2><p class="subtle">Base propia: ${localCount} producto(s). Historial reciente: ${history.length}.</p>${history.map(item => `<div class="history-item"><button onclick='searchBarcode("${escapeJs(item.barcode)}")'>${escapeHtml(item.name)}<span>${escapeHtml(item.brands)} · ${escapeHtml(item.barcode)} · ${escapeHtml(item.source || "")}</span></button></div>`).join("")}<div class="actions" style="margin-top:12px"><button class="secondary" onclick="openManualForm(lastBarcode)">Añadir manual</button><button class="danger" onclick="clearHistory()">Borrar historial</button></div>`;
       historyCard.classList.remove("hidden");
+      return true;
     }
 
     function saveToHistory(product) {
